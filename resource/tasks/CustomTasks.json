@@ -1,0 +1,18 @@
+{
+    "temp_story": {
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["故事"],
+        "isAscii": true
+    },
+    "temp_SlowlySwipeToTheRight": {
+        "algorithm": "JustReturn",
+        "action": "Swipe",
+        "postDelay": 200,
+        "specificRect": [880, 310, 100, 100],
+        "rectMove": [300, 310, 100, 100],
+        "specialParams": [200, 1, 2, 0],
+        "next": ["#next"],
+        "maxTimes": 50
+    }
+}

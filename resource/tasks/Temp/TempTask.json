@@ -1,0 +1,50 @@
+{
+    "temp@package": {
+        "doc": "背包图标",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "temp@package.png",
+        "roi": [637, 335, 101, 101]
+    },
+    "temp@rock": {
+        "doc": "石头图标",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "temp@rock.png",
+        "colorScales": [
+            [
+                [0, 200, 200],
+                [30, 255, 220]
+            ]
+        ],
+        "method": "HSVCount",
+        "roi": [585, 138, 166, 165]
+    },
+    "temp@GachaSwipeToOpenBag": {
+        "baseTask": "SwipeToTheRight",
+        "algorithm": "MatchTemplate",
+        "template": "GachaSkip.png",
+        "postDelay": 3000
+    },
+    "temp@center": {
+        "doc": "活动中心 (pass)",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["活动中心"]
+    },
+    "temp@centerEN": {
+        "doc": "活动中心英文 (pass)",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["EVENT CENTER"],
+        "isAscii": true
+    },
+    "temp@feature": {
+        "doc": "单抽卷",
+        "algorithm": "FeatureMatch",
+        "template": "Temp/temp@package.png",
+        "detector": "BRISK",
+        "count": 20,
+        "action": "ClickSelf"
+    }
+}
