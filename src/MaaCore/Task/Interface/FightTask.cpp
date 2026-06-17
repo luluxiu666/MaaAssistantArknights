@@ -9,6 +9,7 @@
 #include "Task/Fight/SideStoryReopenTask.h"
 #include "Task/Fight/StageDropsTaskPlugin.h"
 #include "Task/Fight/StageNavigationTask.h"
+#include "Task/Miscellaneous/ScreenshotTaskPlugin.h"
 #include "Task/ProcessTask.h"
 #include "Utils/Logger.hpp"
 #include <ranges>
@@ -34,6 +35,7 @@ asst::FightTask::FightTask(const AsstCallback& callback, Assistant* inst) :
         .set_times_limit("PRTS3", 0)
         .set_times_limit("EndOfAction", 0)
         .set_retry_times(5);
+    m_start_up_task_ptr->register_plugin<ScreenshotTaskPlugin>();
 
     m_stage_navigation_task_ptr->set_fight_task_ptr(m_fight_task_ptr);
     m_stage_navigation_task_ptr->set_enable(false).set_retry_times(0);
@@ -127,8 +129,12 @@ bool asst::FightTask::set_params(const json::value& params)
             m_start_up_task_ptr->set_tasks({ "StageBegin" }).set_times_limit("GoLastBattle", 0);
             if (stage.starts_with("SSReopen-") && stage.length() == 11) {
                 m_sidestory_reopen_task_ptr->set_sidestory_name(stage.substr(9));
+                if (!m_stage_navigation_task_ptr->set_stage_name(stage.substr(9) + "-OpenOpt")) {
+                    Log.error("StageNavigationTask not support sidestory reopen stage", stage);
+                    return false;
+                }
                 m_sidestory_reopen_task_ptr->set_enable(true);
-                m_stage_navigation_task_ptr->set_enable(false);
+                m_stage_navigation_task_ptr->set_enable(true);
             }
             else if (m_stage_navigation_task_ptr->set_stage_name(stage)) {
                 m_sidestory_reopen_task_ptr->set_enable(false);
@@ -141,7 +147,6 @@ bool asst::FightTask::set_params(const json::value& params)
                 return false;
             }
         }
-        m_start_up_task_ptr->set_enable(!m_sidestory_reopen_task_ptr->get_enable());
         m_fight_task_ptr->set_enable(!m_sidestory_reopen_task_ptr->get_enable());
         m_stage_drops_plugin_ptr->set_server(server);
     }

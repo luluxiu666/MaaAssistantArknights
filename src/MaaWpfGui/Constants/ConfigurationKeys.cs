@@ -256,9 +256,10 @@ public static class ConfigurationKeys
 
     public const string EnableYituliu = "Yituliu.EnableYituliu";
 
-    public const string TaskTimeoutMinutes = "TimeOut.Timer.TaskTimeoutMinutes";
+    // public const string TaskTimeoutMinutes = "TimeOut.Timer.TaskTimeoutMinutes";
     public const string ReminderIntervalMinutes = "TimeOut.Timer.ReminderIntervalMinutes";
     public const string StallTimeoutMinutes = "TimeOut.Timer.StallTimeoutMinutes";
+    public const string StallTimeoutEnabled = "TimeOut.Timer.StallTimeoutEnabled";
 
     public const string BluestacksConfigPath = "Bluestacks.Config.Path";
     public const string BluestacksConfigKeyword = "Bluestacks.Config.Keyword";
@@ -322,6 +323,7 @@ public static class ConfigurationKeys
     public const string ExternalNotificationGotifyToken = "ExternalNotification.Gotify.Token";
     public const string ExternalNotificationCustomWebhookUrl = "ExternalNotification.CustomWebhook.Url";
     public const string ExternalNotificationCustomWebhookBody = "ExternalNotification.CustomWebhook.Body";
+    public const string ExternalNotificationCustomWebhookHeaders = "ExternalNotification.CustomWebhook.Headers";
 
     public const string PerformanceUseGpu = "Performance.UseGpu";
     public const string PerformancePreferredGpuDescription = "Performance.PreferredGpuDescription";

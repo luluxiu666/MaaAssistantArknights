@@ -28,9 +28,9 @@ std::optional<int> asst::AdbLiteIO::call_command(
     static const boost::regex devices_regex(R"(^.+ devices$)");
     static const boost::regex release_regex(R"(^.+ kill-server$)");
     static const boost::regex connect_regex(R"(^.+ connect (\S+)$)");
-    static const boost::regex shell_regex(R"(^.+ -s \S+ shell (.+)$)");
-    static const boost::regex exec_regex(R"(^.+ -s \S+ exec-out (.+)$)");
-    static const boost::regex push_regex(R"#(^.+ -s \S+ push "(.+)" "(.+)"$)#");
+    static const boost::regex shell_regex(R"(^.+ -s (\S+) shell (.+)$)");
+    static const boost::regex exec_regex(R"(^.+ -s (\S+) exec-out (.+)$)");
+    static const boost::regex push_regex(R"#(^.+ -s (\S+) push "(.+)" "(.+)"$)#");
 
     // adb devices
     if (boost::regex_match(cmd, devices_regex)) {
@@ -61,9 +61,13 @@ std::optional<int> asst::AdbLiteIO::call_command(
     }
 
     // adb connect
-    // TODO: adb server 尚未实现，第一次连接需要执行一次 adb.exe 启动 daemon
     if (boost::regex_match(cmd, match, connect_regex)) {
-        m_adb_client = adb::client::create(match[1].str()); // TODO: compare address with existing (if any)
+        const std::string serial = match[1].str();
+        auto lock = lock_adb_client(serial);
+        if (!lock) {
+            ret = std::nullopt;
+            goto ret_exit;
+        }
 
         try {
             pipe_data = m_adb_client->connect();
@@ -80,14 +84,15 @@ std::optional<int> asst::AdbLiteIO::call_command(
 
     // adb shell
     if (boost::regex_match(cmd, match, shell_regex)) {
-        if (!m_adb_client) {
-            Log.error("adb client not initialized");
+        const std::string serial = match[1].str();
+        std::string command = match[2].str();
+        remove_quotes(command);
+
+        auto lock = lock_adb_client(serial);
+        if (!lock) {
             ret = std::nullopt;
             goto ret_exit;
         }
-
-        std::string command = match[1].str();
-        remove_quotes(command);
 
         try {
             pipe_data = m_adb_client->shell(command);
@@ -103,14 +108,15 @@ std::optional<int> asst::AdbLiteIO::call_command(
 
     // adb exec-out
     if (boost::regex_match(cmd, match, exec_regex)) {
-        if (!m_adb_client) {
-            Log.error("adb client not initialized");
+        const std::string serial = match[1].str();
+        std::string command = match[2].str();
+        remove_quotes(command);
+
+        auto lock = lock_adb_client(serial);
+        if (!lock) {
             ret = std::nullopt;
             goto ret_exit;
         }
-
-        std::string command = match[1].str();
-        remove_quotes(command);
 
         try {
             pipe_data = m_adb_client->exec(command);
@@ -126,14 +132,15 @@ std::optional<int> asst::AdbLiteIO::call_command(
 
     // adb push
     if (boost::regex_match(cmd, match, push_regex)) {
-        if (!m_adb_client) {
-            Log.error("adb client not initialized");
+        const std::string serial = match[1].str();
+        auto lock = lock_adb_client(serial);
+        if (!lock) {
             ret = std::nullopt;
             goto ret_exit;
         }
 
         try {
-            m_adb_client->push(match[1].str(), match[2].str(), 0644);
+            m_adb_client->push(match[2].str(), match[3].str(), 0644);
             ret = 0;
             goto ret_exit;
         }
@@ -156,19 +163,51 @@ ret_exit:
     return ret;
 }
 
+std::optional<std::unique_lock<std::mutex>> asst::AdbLiteIO::lock_adb_client(std::string_view serial)
+{
+    std::unique_lock lock(m_adb_client_mutex);
+    if (!m_adb_client || m_adb_serial != serial) {
+        Log.error("adb client not initialized for serial:", std::string(serial), "current:", m_adb_serial);
+        return std::nullopt;
+    }
+
+    return std::move(lock);
+}
+
+void asst::AdbLiteIO::set_adb_serial(std::string_view serial)
+{
+    std::lock_guard lock(m_adb_client_mutex);
+    const std::string serial_str(serial);
+    if (m_adb_client && m_adb_serial == serial_str) {
+        return;
+    }
+
+    try {
+        auto adb_client = adb::client::create(serial_str);
+        m_adb_serial = serial_str;
+        m_adb_client = std::move(adb_client);
+    }
+    catch (const std::exception& e) {
+        Log.error("failed to create adb-lite client for serial:", serial_str, e.what());
+        m_adb_serial.clear();
+        m_adb_client.reset();
+    }
+}
+
 std::shared_ptr<asst::IOHandler> asst::AdbLiteIO::interactive_shell(const std::string& cmd)
 {
-    static const boost::regex shell_regex(R"(^.+ -s \S+ shell (.+)$)");
+    static const boost::regex shell_regex(R"(^.+ -s (\S+) shell (.+)$)");
     boost::smatch match;
 
     if (boost::regex_match(cmd, match, shell_regex)) {
-        if (!m_adb_client) {
-            Log.error("adb client not initialized");
+        const std::string serial = match[1].str();
+        std::string command = match[2].str();
+        remove_quotes(command);
+
+        auto lock = lock_adb_client(serial);
+        if (!lock) {
             return nullptr;
         }
-
-        std::string command = match[1].str();
-        remove_quotes(command);
 
         try {
             return std::make_shared<IOHandlerAdbLite>(m_adb_client->interactive_shell(command));
@@ -186,7 +225,13 @@ std::shared_ptr<asst::IOHandler> asst::AdbLiteIO::interactive_shell(const std::s
 
 void asst::AdbLiteIO::release_adb(const std::string& adb_release, int64_t timeout)
 {
-    if (m_adb_client) {
+    bool has_adb_client = false;
+    {
+        std::lock_guard lock(m_adb_client_mutex);
+        has_adb_client = static_cast<bool>(m_adb_client);
+    }
+
+    if (has_adb_client) {
         std::string pipe_data;
         std::string sock_data;
         auto start_time = std::chrono::steady_clock::now();

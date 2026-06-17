@@ -38,7 +38,9 @@ public partial class TooltipBlock : UserControl
 
     public static readonly DependencyProperty TextBlockTextProperty = DependencyProperty.Register(nameof(TextBlockText), typeof(string), typeof(TooltipBlock), new("?"));
 
-    public static readonly DependencyProperty TooltipTextProperty = DependencyProperty.Register(nameof(TooltipText), typeof(string), typeof(TooltipBlock), new(string.Empty));
+    public static readonly DependencyProperty TooltipTextProperty = DependencyProperty.Register(nameof(TooltipText), typeof(string), typeof(TooltipBlock), new PropertyMetadata(string.Empty, OnTooltipTextChanged));
+
+    public static readonly DependencyProperty TooltipTextEmptyProperty = DependencyProperty.Register(nameof(TooltipTextEmpty), typeof(bool), typeof(TooltipBlock), new PropertyMetadata(true));
 
     public static readonly DependencyProperty TooltipMaxWidthProperty = DependencyProperty.Register(nameof(TooltipMaxWidth), typeof(double), typeof(TooltipBlock), new(double.MaxValue));
 
@@ -47,6 +49,10 @@ public partial class TooltipBlock : UserControl
     public static readonly DependencyProperty HoverOpacityProperty = DependencyProperty.Register(nameof(HoverOpacity), typeof(double), typeof(TooltipBlock), new(1.0, OnOpacityChanged));
 
     public static readonly DependencyProperty InitialShowDelayProperty = DependencyProperty.Register(nameof(InitialShowDelay), typeof(int), typeof(TooltipBlock), new(200));
+
+    public static readonly DependencyProperty CustomToolTipProperty = DependencyProperty.Register(nameof(CustomToolTip), typeof(object), typeof(TooltipBlock), new PropertyMetadata(null, OnCustomToolTipChanged));
+
+    public static readonly DependencyProperty IsToolTipEnabledProperty = DependencyProperty.Register(nameof(IsToolTipEnabled), typeof(bool), typeof(TooltipBlock), new PropertyMetadata(false));
 
     public Geometry? PathDate
     {
@@ -74,7 +80,40 @@ public partial class TooltipBlock : UserControl
         set => SetValue(TooltipTextProperty, value);
     }
 
-    public bool TooltipTextEmpty => string.IsNullOrEmpty(TooltipText);
+    public bool TooltipTextEmpty
+    {
+        get => (bool)GetValue(TooltipTextEmptyProperty);
+        private set => SetValue(TooltipTextEmptyProperty, value);
+    }
+
+    private static void OnTooltipTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is TooltipBlock block)
+        {
+            block.TooltipTextEmpty = string.IsNullOrEmpty((string?)e.NewValue);
+            block.UpdateIsToolTipEnabled();
+        }
+    }
+
+    private static void OnCustomToolTipChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+    {
+        if (d is not TooltipBlock block)
+        {
+            return;
+        }
+
+        if (block.PART_Border is { } border)
+        {
+            border.ToolTip = e.NewValue ?? block.DefaultToolTipContent;
+        }
+
+        block.UpdateIsToolTipEnabled();
+    }
+
+    private void UpdateIsToolTipEnabled()
+    {
+        IsToolTipEnabled = !TooltipTextEmpty || CustomToolTip != null;
+    }
 
     public double TooltipMaxWidth
     {
@@ -98,6 +137,21 @@ public partial class TooltipBlock : UserControl
     {
         get => (int)GetValue(InitialShowDelayProperty);
         set => SetValue(InitialShowDelayProperty, value);
+    }
+
+    /// <summary>
+    /// Gets or sets 自定义 ToolTip 内容。设置后将覆盖默认的 TooltipText TextBlock；设为 null 时恢复默认。
+    /// </summary>
+    public object? CustomToolTip
+    {
+        get => GetValue(CustomToolTipProperty);
+        set => SetValue(CustomToolTipProperty, value);
+    }
+
+    public bool IsToolTipEnabled
+    {
+        get => (bool)GetValue(IsToolTipEnabledProperty);
+        private set => SetValue(IsToolTipEnabledProperty, value);
     }
 
     private static void OnOpacityChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)

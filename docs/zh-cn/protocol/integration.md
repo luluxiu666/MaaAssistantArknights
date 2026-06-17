@@ -64,6 +64,8 @@ AsstTaskId ASSTAPI AsstAppendTask(AsstHandle handle, const char* type, const cha
 官服：`123****4567`，可输入 `123****4567`、`4567`、`123`、`3****4567`  
 <br>
 B服：`张三`，可输入 `张三`、`张`、`三`  
+<br>
+繁中服：账号为 Email，如 `ab****01@gmail.com`，建议填不含星号的明文片段，如 `01@gmail`  
 :::  
 ::::
 
@@ -134,8 +136,11 @@ B服：`张三`，可输入 `张三`、`张`、`三`
   ::: field name="medicine" type="number" optional default="0"  
   最大使用理智药数量。  
   :::  
-  ::: field name="expiring_medicine" type="number" optional default="0"  
-  最大使用 48 小时内过期理智药数量。  
+  ::: field name="medicine_expire_days" type="number" optional default="0"  
+  使用过期时间在指定天数内的理智药，0 表示不使用过期理智药。  
+  :::  
+  ::: field name="expiring_medicine" type="number" optional default="0" deprecated  
+  已弃用，自 v6.8.0 起请使用 `medicine_expire_days` 代替。  
   :::  
   ::: field name="stone" type="number" optional default="0"  
   最大吃石头数量。  
@@ -197,7 +202,7 @@ B服：`张三`，可输入 `张三`、`张`、`三`
    "enable": true,
    "stage": "1-7",
    "medicine": 1,
-   "expiring_medicine": 0,
+   "medicine_expire_days": 2,
    "stone": 0,
    "times": 10,
    "series": 0,
@@ -259,7 +264,14 @@ B服：`张三`，可输入 `张三`、`张`、`三`
 加急次数，仅在 `expedite` 为 true 时有效。默认无限使用（直到 `times` 达到上限）。  
 :::  
 ::: field name="skip_robot" type="boolean" optional default="true"  
-是否在识别到小车词条时跳过。  
+已废弃，仅用于兼容旧参数。  
+<br>
+当未提供 `preserve_tags` 且该值为 `true` 时，会在识别到 `支援机械` 时跳过；`元素` 不再视为旧版 1 星词条。  
+:::
+::: field name="preserve_tags" type="array<string>" optional  
+需要保留并跳过当前公招槽位的 Tag 名称列表。默认为空。  
+<br>
+当识别到任一指定 Tag 时，MAA 会保留该槽位并跳过本次招募。  
 :::  
 ::: field name="recruitment_time" type="object" optional  
 Tag 等级（大于等于 3）和对应的希望招募时限，单位为分钟，默认值都为 540（即 09:00:00）。
@@ -300,7 +312,7 @@ Tag 等级（大于等于 3）和对应的希望招募时限，单位为分钟�
    "set_time": true,
    "expedite": false,
    "expedite_times": 0,
-   "skip_robot": true,
+   "preserve_tags": ["支援机械"],
    "recruitment_time": {
       "3": 540,
       "4": 540
@@ -910,32 +922,44 @@ Tag 等级（大于等于 3）和对应的希望招募时限，单位为分钟�
 ::: field name="enable" type="boolean" optional default="true"  
 是否启用本任务。  
 :::  
-::: field name="theme" type="string" optional default="Fire"  
+::: field name="theme" type="string" optional default="Tales"  
 主题。
 <br>
-`Fire` - _沙中之火_
+`Fire` - _沙中之火_（已关闭）
 <br>
-`Tales` - _沙洲遗闻_  
+`Tales` - _沙洲遗闻_
+<br>
+`RelaunchAnchor` - _重启锚点_  
 :::  
 ::: field name="mode" type="number" optional default="0"  
-模式。
+模式。不同主题支持的模式不同：
 <br>
-`0` - 刷分与建造点，进入战斗直接退出。
+**Tales（沙洲遗闻）：**
 <br>
-`1` - 沙中之火：刷赤金，联络员买水后基地锻造；沙洲遗闻：自动制造物品并读档刷货币。  
+`0` - 无存档，通过进出关卡刷生息点数。
+<br>
+`1` - 有存档，通过组装支援道具刷生息点数。
+<br>
+**RelaunchAnchor（重启锚点）：**
+<br>
+`16` (`RA1`) - RA-1，自动执行精耕细作、建设、交付资源、结算循环。
+<br>
+`32` (`RA15`) - RA-15，用圣聆初雪完成 60 杀任务。
+<br>
+`48` (`RA4`) - RA-4，使用筹划经营策略给予的赤金解锁区域，使用维什戴尔完成击杀 boss 任务。
 :::  
 ::: field name="tools_to_craft" type="array<string>" optional default="[&quot;荧光棒&quot;]"  
-自动制造的物品，建议填写子串。  
+自动制造的物品，建议填写子串。仅 Tales 主题有效。  
 :::  
 ::: field name="increment_mode" type="number" optional default="0"  
-点击类型。
+点击类型。仅 Tales 主题有效。
 <br>
 `0` - 连点
 <br>
 `1` - 长按  
 :::  
 ::: field name="num_craft_batches" type="number" optional default="16"  
-单次最大制造轮数。  
+单次最大制造轮数。仅 Tales 主题有效。  
 :::  
 ::::
 

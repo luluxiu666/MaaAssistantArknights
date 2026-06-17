@@ -674,10 +674,8 @@ public class Bootstrapper : Bootstrapper<RootViewModel>
 
     private static bool HandleMultipleInstances()
     {
-        string instanceKey = GetSingleInstanceKey();
-        string mutexName = "MAA_" + instanceKey;
-        string activationEventName = "MAA_SHOW_" + instanceKey;
-        _mutex = new Mutex(true, mutexName, out var isOnlyInstance);
+        string activationEventName = "MAA_SHOW_" + InstanceKey;
+        _mutex = new Mutex(true, MutexName, out var isOnlyInstance);
 
         try
         {
@@ -709,13 +707,18 @@ public class Bootstrapper : Bootstrapper<RootViewModel>
         }
     }
 
-    private static string GetSingleInstanceKey()
+    public static string InstanceKey
     {
-        var normalizedBaseDir = Path.GetFullPath(PathsHelper.BaseDir)
-            .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            .ToUpperInvariant();
-        return normalizedBaseDir.StableHash();
+        get
+        {
+            var normalizedBaseDir = Path.GetFullPath(PathsHelper.BaseDir)
+                .TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+                .ToUpperInvariant();
+            return normalizedBaseDir.StableHash();
+        }
     }
+
+    public static string MutexName => "MAA_" + InstanceKey;
 
     private static void EnsureInstanceActivationEvent(string activationEventName)
     {
@@ -1184,22 +1187,6 @@ public class Bootstrapper : Bootstrapper<RootViewModel>
     {
         // 配置名可能就包在引号中，需要转义符，如 \"a\"
         string currentConfig = ConfigurationHelper.GetCurrentConfiguration();
-        if (currentConfig == desiredConfig)
-        {
-            return false;
-        }
-
-        if (!ConfigurationHelper.SwitchConfiguration(desiredConfig))
-        {
-            return false;
-        }
-
-        // ConfigurationHelper 侧切换成功，检查 ConfigFactory 侧是否需要自动恢复
-        if (!ConfigFactory.SwitchConfig(desiredConfig))
-        {
-            return false;
-        }
-
-        return true;
+        return currentConfig != desiredConfig && ConfigurationHelper.SwitchConfiguration(desiredConfig) && ConfigFactory.SwitchConfig(desiredConfig);
     }
 }

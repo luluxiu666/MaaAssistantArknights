@@ -120,6 +120,10 @@ public partial class CopilotViewModel : Screen
             Inited = e.NewState.Inited;
             Stopping = e.NewState.Stopping;
         };
+        UserAdditionalItems.CollectionChanged += (_, _) => {
+            NotifyOfPropertyChange(nameof(UserAdditionalGridHeight));
+            NotifyOfPropertyChange(nameof(UserAdditionalPopupVerticalOffset));
+        };
 
         var copilotTaskList = ConfigurationHelper.GetValue(ConfigurationKeys.CopilotTaskList, string.Empty);
         if (string.IsNullOrEmpty(copilotTaskList))
@@ -379,6 +383,8 @@ public partial class CopilotViewModel : Screen
     /// </summary>
     public bool HasRequirementIgnored { get; set; } = false;
 
+    public int CurrentCopilotId { get; set; } = -1;
+
     public bool UseSanityPotion { get => field; set => SetAndNotify(ref field, value); }
 
     /// <summary>
@@ -437,6 +443,22 @@ public partial class CopilotViewModel : Screen
     /// Gets the view models of UserAdditional items.
     /// </summary>
     public ObservableCollection<UserAdditionalItemViewModel> UserAdditionalItems { get; } = [];
+
+    private const int MaxVisibleUserAdditionalRows = 7;
+
+    public double UserAdditionalRowHeight => 40;
+
+    public double UserAdditionalGridMaxHeight => 350;
+
+    public double UserAdditionalGridHeight
+    {
+        get {
+            var rows = Math.Clamp(UserAdditionalItems.Count, 1, MaxVisibleUserAdditionalRows);
+            return UserAdditionalGridMaxHeight - ((MaxVisibleUserAdditionalRows - rows) * UserAdditionalRowHeight);
+        }
+    }
+
+    public double UserAdditionalPopupVerticalOffset => (UserAdditionalGridHeight - UserAdditionalGridMaxHeight) / 2;
 
     /// <summary>
     /// Opens the UserAdditional popup for editing.
@@ -746,14 +768,6 @@ public partial class CopilotViewModel : Screen
         }
     }
 
-    private string _urlText = LocalizationHelper.GetString("PrtsPlus");
-
-    /// <summary>
-    /// Gets or private sets the UrlText.
-    /// </summary>
-    [PropertyDependsOn(nameof(CopilotUrl))]
-    public string UrlText => CopilotUrl == CopilotUiUrl ? LocalizationHelper.GetString("PrtsPlus") : LocalizationHelper.GetString("VideoLink");
-
     private const string CopilotUiUrl = MaaUrls.PrtsPlus;
 
     private string _copilotUrl = CopilotUiUrl;
@@ -768,6 +782,23 @@ public partial class CopilotViewModel : Screen
             SetAndNotify(ref _copilotUrl, value);
         }
     }
+
+    private string _videoUrl = string.Empty;
+
+    /// <summary>
+    /// Gets or private sets the video URL.
+    /// </summary>
+    public string VideoUrl
+    {
+        get => _videoUrl;
+        private set => SetAndNotify(ref _videoUrl, value);
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether there is a video URL.
+    /// </summary>
+    [PropertyDependsOn(nameof(VideoUrl))]
+    public bool HasVideoUrl => !string.IsNullOrEmpty(VideoUrl);
 
     private const string MapUiUrl = MaaUrls.MapPrts;
 
@@ -1000,6 +1031,7 @@ public partial class CopilotViewModel : Screen
     {
         ClearLog();
         CopilotUrl = CopilotUiUrl;
+        VideoUrl = string.Empty;
         MapUrl = MapUiUrl;
         IsDataFromWeb = false;
         CopilotId = 0;
@@ -1142,14 +1174,14 @@ public partial class CopilotViewModel : Screen
 
         _taskType = AsstTaskType.Copilot;
         _copilotCache = copilot;
+        VideoUrl = string.Empty;
         if (copilot.Documentation?.Details is not null)
         {
-            CopilotUrl = CopilotUiUrl;
-            var linkParser = new Regex(@"(?:av\d+|bv[a-z0-9]{10})(?:\/\?p=\d+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            var linkParser = BVRegex();
             var match = linkParser.Match(copilot.Documentation.Details);
             if (match.Success)
             {
-                CopilotUrl = MaaUrls.BilibiliVideo + match.Value; // 视频链接
+                VideoUrl = MaaUrls.BilibiliVideo + match.Value; // 视频链接
             }
         }
 
@@ -1248,14 +1280,14 @@ public partial class CopilotViewModel : Screen
         CopilotTabIndex = 1;
         _copilotCache = copilot;
         MapUrl = MapUiUrl.Replace("areas", "map/" + copilot.StageName);
+        VideoUrl = string.Empty;
         if (copilot.Documentation?.Details is not null)
         {
-            CopilotUrl = CopilotUiUrl;
             var linkParser = new Regex(@"(?:av\d+|bv[a-z0-9]{10})(?:\/\?p=\d+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             var match = linkParser.Match(copilot.Documentation.Details);
             if (match.Success)
             {
-                CopilotUrl = MaaUrls.BilibiliVideo + match.Value; // 视频链接
+                VideoUrl = MaaUrls.BilibiliVideo + match.Value; // 视频链接
             }
         }
 
@@ -1779,7 +1811,7 @@ public partial class CopilotViewModel : Screen
         Execute.OnUIThread(() => {
             foreach (var model in CopilotItemViewModels)
             {
-                if (!model.IsChecked)
+                if (!model.IsChecked || (CurrentCopilotId != -1 && model.Index != CurrentCopilotId))
                 {
                     continue;
                 }
@@ -2047,7 +2079,7 @@ public partial class CopilotViewModel : Screen
 
             var t = CopilotItemViewModels.Where(i => i.IsChecked).Select(i => {
                 _copilotIdList.Add(i.CopilotId);
-                return new MultiTask { FileName = i.FilePath, IsRaid = i.IsRaid, StageName = i.Name, };
+                return new MultiTask { Index = i.Index, FileName = i.FilePath, IsRaid = i.IsRaid, StageName = i.Name, };
             });
 
             var task = new AsstCopilotTask() {
@@ -2071,7 +2103,7 @@ public partial class CopilotViewModel : Screen
 
             var t = CopilotItemViewModels.Where(i => i.IsChecked).Select(i => {
                 _copilotIdList.Add(i.CopilotId);
-                return i.FilePath;
+                return new AsstParadoxCopilotTask.MultiTask(i.Index, i.FilePath);
             });
 
             var task = new AsstParadoxCopilotTask() { MultiTasks = [.. t], };
@@ -2400,4 +2432,7 @@ public partial class CopilotViewModel : Screen
         /// <summary>其他</summary>
         Other,
     }
+
+    [GeneratedRegex(@"(?:av\d+|bv[a-z0-9]{10})(?:\/\?p=\d+)?", RegexOptions.IgnoreCase | RegexOptions.Compiled, "zh-CN")]
+    private static partial Regex BVRegex();
 }

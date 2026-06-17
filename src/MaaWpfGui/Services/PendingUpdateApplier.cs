@@ -23,6 +23,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using MaaWpfGui.Constants;
 using MaaWpfGui.Helper;
+using MaaWpfGui.Main;
 using Newtonsoft.Json.Linq;
 using Semver;
 using Serilog;
@@ -460,7 +461,8 @@ internal static partial class PendingUpdateApplier
 
         // Args: <ParentPid> <RootDir> <ExtractDir> <BackupDir>
         //       <PackagePath> <SuccessStatusFile> <FailureStatusFile>
-        //       <RelaunchExecutablePath> <PlanFile> [--show-console]
+        //       <RelaunchExecutablePath> <PlanFile>
+        //       [--mutex-name <name>] [--show-console]
         startInfo.ArgumentList.Add(Environment.ProcessId.ToString());
         startInfo.ArgumentList.Add(context.RootDir);
         startInfo.ArgumentList.Add(context.ExtractDir);
@@ -470,6 +472,8 @@ internal static partial class PendingUpdateApplier
         startInfo.ArgumentList.Add(DelegatedUpdateFailureStatusFilePath);
         startInfo.ArgumentList.Add(relaunchExecutablePath);
         startInfo.ArgumentList.Add(planPath);
+        startInfo.ArgumentList.Add("--mutex-name");
+        startInfo.ArgumentList.Add(Bootstrapper.MutexName);
         if (showUpdaterConsole)
         {
             startInfo.ArgumentList.Add("--show-console");
@@ -773,7 +777,7 @@ internal static partial class PendingUpdateApplier
         }
 
         string existingUpdateTag = ConfigurationHelper.GetGlobalValue(ConfigurationKeys.VersionName, string.Empty);
-        string existingUpdateBody = ConfigurationHelper.GetGlobalValue(ConfigurationKeys.VersionUpdateBody, string.Empty);
+        string existingUpdateBody = MarkdownDataHelper.Get("CHANGELOG");
         return !string.IsNullOrWhiteSpace(existingUpdateBody) && VersionsMatch(existingUpdateTag, updateTag);
     }
 
@@ -783,7 +787,7 @@ internal static partial class PendingUpdateApplier
         ConfigurationHelper.SetGlobalValue(ConfigurationKeys.VersionName, updateTag);
         if (!preserveExistingUpdateBody)
         {
-            ConfigurationHelper.SetGlobalValue(ConfigurationKeys.VersionUpdateBody, string.Empty);
+            MarkdownDataHelper.Delete("CHANGELOG");
         }
 
         ConfigurationHelper.SetGlobalValue(ConfigurationKeys.VersionUpdatePackage, packagePath);

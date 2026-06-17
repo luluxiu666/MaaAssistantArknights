@@ -45,7 +45,7 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
             true);
     }
 
-    private bool _externalNotificationSendWhenComplete = Convert.ToBoolean(ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSendWhenComplete, bool.TrueString));
+    private bool _externalNotificationSendWhenComplete = ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSendWhenComplete, true);
 
     public bool ExternalNotificationSendWhenComplete
     {
@@ -56,7 +56,7 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
         }
     }
 
-    private bool _externalNotificationEnableDetails = Convert.ToBoolean(ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationEnableDetails, bool.FalseString));
+    private bool _externalNotificationEnableDetails = ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationEnableDetails, false);
 
     public bool ExternalNotificationEnableDetails
     {
@@ -67,7 +67,7 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
         }
     }
 
-    private bool _externalNotificationSendWhenError = Convert.ToBoolean(ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSendWhenError, bool.TrueString));
+    private bool _externalNotificationSendWhenError = ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSendWhenError, true);
 
     public bool ExternalNotificationSendWhenError
     {
@@ -78,8 +78,7 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
         }
     }
 
-
-    private bool _externalNotificationSendWhenStalled = Convert.ToBoolean(ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSendWhenStalled, bool.FalseString));
+    private bool _externalNotificationSendWhenStalled = ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSendWhenStalled, false);
 
     public bool ExternalNotificationSendWhenStalled
     {
@@ -347,7 +346,7 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
         }
     }
 
-    private bool _smtpUseSsl = Convert.ToBoolean(ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSmtpUseSsl, bool.FalseString));
+    private bool _smtpUseSsl = ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSmtpUseSsl, false);
 
     public bool SmtpUseSsl
     {
@@ -358,7 +357,7 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
         }
     }
 
-    private bool _smtpRequireAuthentication = Convert.ToBoolean(ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSmtpRequiresAuthentication, bool.FalseString));
+    private bool _smtpRequireAuthentication = ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationSmtpRequiresAuthentication, false);
 
     public bool SmtpRequireAuthentication
     {
@@ -518,8 +517,7 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
     public string GotifyServer
     {
         get => _gotifyServer;
-        set
-        {
+        set {
             SetAndNotify(ref _gotifyServer, value);
             var encryptedValue = SimpleEncryptionHelper.Encrypt(value);
             ConfigurationHelper.SetValue(ConfigurationKeys.ExternalNotificationGotifyServer, encryptedValue);
@@ -531,8 +529,7 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
     public string GotifyToken
     {
         get => _gotifyToken;
-        set
-        {
+        set {
             SetAndNotify(ref _gotifyToken, value);
             var encryptedValue = SimpleEncryptionHelper.Encrypt(value);
             ConfigurationHelper.SetValue(ConfigurationKeys.ExternalNotificationGotifyToken, encryptedValue);
@@ -560,6 +557,49 @@ public class ExternalNotificationSettingsUserControlModel : PropertyChangedBase
             SetAndNotify(ref _customWebhookBody, value);
             value = SimpleEncryptionHelper.Encrypt(value);
             ConfigurationHelper.SetValue(ConfigurationKeys.ExternalNotificationCustomWebhookBody, value);
+        }
+    }
+
+    private string _customWebhookHeaders = SimpleEncryptionHelper.Decrypt(ConfigurationHelper.GetValue(ConfigurationKeys.ExternalNotificationCustomWebhookHeaders, string.Empty));
+
+    public string CustomWebhookHeaders
+    {
+        get => _customWebhookHeaders;
+        set {
+            SetAndNotify(ref _customWebhookHeaders, value);
+            value = SimpleEncryptionHelper.Encrypt(value);
+            ConfigurationHelper.SetValue(ConfigurationKeys.ExternalNotificationCustomWebhookHeaders, value);
+        }
+    }
+
+    public IReadOnlyList<WebhookPresetTemplate> PresetTemplateList => WebhookPresetTemplate.BuiltInTemplates;
+
+    private string _selectedPresetTemplateId = "__custom__";
+
+    public string SelectedPresetTemplateId
+    {
+        get => _selectedPresetTemplateId;
+        set
+        {
+            if (!SetAndNotify(ref _selectedPresetTemplateId, value))
+            {
+                return;
+            }
+
+            if (value == "__custom__")
+            {
+                return;
+            }
+
+            var template = WebhookPresetTemplate.BuiltInTemplates.FirstOrDefault(t => t.Id == value);
+            if (template == null)
+            {
+                return;
+            }
+
+            CustomWebhookUrl = template.Url;
+            CustomWebhookBody = template.BodyTemplate;
+            CustomWebhookHeaders = template.Headers;
         }
     }
 

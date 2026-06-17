@@ -62,7 +62,9 @@ public static class ConfigFactory
     // ReSharper disable once EventNeverSubscribedTo.Global
     public static event ConfigurationUpdateEventHandler? ConfigurationUpdateEvent;
 
-    private static readonly JsonSerializerOptions _options = new() { WriteIndented = true, Converters = { new FightTaskStageResetModeConverter(), new FaultTolerantRootConverter(), new TolerantEnumConverterFactory(), new FightTaskStageResetModeInvalidToIgnoreConverter() }, Encoder = JavaScriptEncoder.Create(UnicodeRanges.All), DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { JsonPredictSerializationModifier.Modify } } };
+    private static readonly JsonSerializerOptions _options = new() { WriteIndented = true, Converters = { new RecruitTaskHoldTagsConverter(), new FightTaskStageResetModeConverter(), new FaultTolerantRootConverter(), new TolerantEnumConverterFactory(), new FightTaskStageResetModeInvalidToIgnoreConverter() }, Encoder = JavaScriptEncoder.Create(UnicodeRanges.All), DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull, TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { JsonPredictSerializationModifier.Modify } } };
+
+    private static readonly List<string> _brokenConfigs = [];
 
     // TODO: 参考 ConfigurationHelper ，拆几个函数出来
     private static readonly Lazy<Root> _rootConfig = new(() => {
@@ -169,24 +171,36 @@ public static class ConfigFactory
                 _logger.Warning("{File} save failed", _configBakFile);
             }
 
+            if (parsed.Configurations.All(i => i.Key != parsed.Current))
+            {
+                _brokenConfigs.Add(parsed.Current);
+                parsed.Configurations.Add(parsed.Current, new SpecificConfig());
+            }
+
             if (ParseJsonFile(ConfigurationHelper.ConfigFile) is JsonObject oldConfigJson && oldConfigJson["Configurations"] is JsonObject configurationsObj)
             {
-                if (oldConfigJson["Current"]?.GetValue<string>() is string oldCurrent && parsed.Current != oldCurrent)
-                {
-                    _logger.Warning("Current configuration in old configuration is {OldCurrent}, but in new configuration is {NewCurrent}, switching to old current", oldCurrent, parsed.Current);
-                    parsed.Current = oldCurrent;
-                }
                 var configNames = configurationsObj.Select(i => i.Key);
                 foreach (var name in parsed.Configurations.Select(i => i.Key).Except(configNames))
                 {
-                    parsed.Configurations.Remove(name);
-                    _logger.Information("Configuration {ConfigName} does not exist in old configuration, remove it", name);
+                    _brokenConfigs.Add(name);
+                    ConfigurationHelper.AddConfiguration(name, parsed.Current); // old config补全
+                    _logger.Information("Config {ConfigName} does not exist in old configuration, add into old configuration copy from {Current}", name, parsed.Current);
                 }
-            }
 
-            if (parsed.Configurations.All(i => i.Key != parsed.Current))
-            {
-                parsed.Configurations.Add(parsed.Current, new SpecificConfig());
+                foreach (var name in configNames)
+                {
+                    if (!parsed.Configurations.ContainsKey(name))
+                    {
+                        _brokenConfigs.Add(name);
+                        parsed.Configurations.Add(name, parsed.CurrentConfig); // new config补全
+                        _logger.Information("Config {ConfigName} exists in old configuration but not in new config, copy from {Current}", name, parsed.Current);
+                    }
+                }
+                if (oldConfigJson["Current"]?.GetValue<string>() is string oldCurrent && parsed.Current != oldCurrent)
+                {
+                    _logger.Warning("Current configuration in old configuration is {OldCurrent}, but in new config is {NewCurrent}, switching to old current", oldCurrent, parsed.Current);
+                    ConfigurationHelper.SwitchConfiguration(parsed.Current); // 检查 Current 一致性
+                }
             }
 
             return parsed;
@@ -255,6 +269,18 @@ public static class ConfigFactory
             }
         }
     });
+
+    public static string? ConsumePendingRecoveryMessage()
+    {
+        if (_brokenConfigs.Count == 0)
+        {
+            return null;
+        }
+
+        var messages = LocalizationHelper.GetStringFormat("ConfigurationRecoveredNotification", string.Join(", ", _brokenConfigs));
+        _brokenConfigs.Clear();
+        return messages;
+    }
 
     private static PropertyChangedEventHandler OnPropertyChangedFactory(string key, object? oldValue, object? newValue)
     {
@@ -353,19 +379,20 @@ public static class ConfigFactory
 
     private static bool Save(string? file = null, Root? root = null)
     {
-        lock (_lock)
+        _semaphore.Wait();
+        try
         {
-            try
-            {
-                File.WriteAllText(file ?? ConfigFile, JsonSerializer.Serialize(root ?? Root, _options));
-            }
-            catch (Exception e)
-            {
-                _logger.Error(e, "Failed to save configuration file.");
-                return false;
-            }
-
+            File.WriteAllText(file ?? ConfigFile, JsonSerializer.Serialize(root ?? Root, _options));
             return true;
+        }
+        catch (Exception e)
+        {
+            _logger.Error(e, "Failed to save configuration file.");
+            return false;
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 
@@ -398,16 +425,13 @@ public static class ConfigFactory
             _logger.Information("Waiting for save task to complete");
             _saveTask.Wait();
         }
-        lock (_lock)
+        if (Save())
         {
-            if (Save())
-            {
-                _logger.Information("{File} saved", ConfigFile);
-            }
-            else
-            {
-                _logger.Warning("{File} save failed", ConfigFile);
-            }
+            _logger.Information("{File} saved", ConfigFile);
+        }
+        else
+        {
+            _logger.Warning("{File} save failed", ConfigFile);
         }
     }
 
@@ -415,31 +439,25 @@ public static class ConfigFactory
     {
         if (Root.Configurations.ContainsKey(configName) is false)
         {
-            _logger.Warning("Configuration {ConfigName} does not exist in ConfigFactory, attempting to recover from current configuration", configName);
-            if (!AddConfiguration(configName, Root.Current))
-            {
-                _logger.Error("Failed to recover missing configuration {ConfigName}", configName);
-                return false;
-            }
-
-            ToastNotification.ShowDirect(LocalizationHelper.GetStringFormat("ConfigurationRecoveredNotification", configName));
-            _logger.Warning("Configuration {ConfigName} recovered from current configuration {Current}", configName, Root.Current);
+            _logger.Warning("Configuration {ConfigName} does not exist", configName);
+            return false;
         }
 
         Root.Current = configName;
         return true;
     }
 
+    /// <summary>
+    /// 检查指定名称的配置是否存在。
+    /// </summary>
+    /// <param name="configName">配置名称</param>
+    /// <returns>存在则返回 <c>true</c>，否则返回 <c>false</c></returns>
+    public static bool ConfigurationExists(string configName) => Root.Configurations.ContainsKey(configName);
+
     public static bool AddConfiguration(string configName, string? copyFrom = null)
     {
         if (string.IsNullOrEmpty(configName))
         {
-            return false;
-        }
-
-        if (ConfigurationHelper.GetConfigurationList().Contains(configName) is false)
-        {
-            _logger.Error("Configuration {ConfigName} does not exist in ConfigurationHelper, cannot add to ConfigFactory", configName);
             return false;
         }
 
@@ -485,7 +503,7 @@ public static class ConfigFactory
         return true;
     }
 
-    public static List<string> ConfigList
+    public static List<string> ConfigKeys
     {
         get {
             var lists = new List<string>(Root.Configurations.Count);

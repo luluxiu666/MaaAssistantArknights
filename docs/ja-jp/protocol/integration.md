@@ -64,6 +64,8 @@ AsstTaskId ASSTAPI AsstAppendTask(AsstHandle handle, const char* type, const cha
 Official：`123****4567`、入力可能：`123****4567`、`4567`、`123`、`3****4567`  
 <br>
 Bilibili：`张三`、入力可能：`张三`、`张`、`三`  
+<br>
+繁体字中国語サーバー：Eメール形式（例：`ab****01@gmail.com`）。アスタリスクを含まない明文部分（例：`01@gmail`）の入力を推奨  
 :::  
 ::::
 
@@ -134,8 +136,11 @@ Bilibili：`张三`、入力可能：`张三`、`张`、`三`
   ::: field name="medicine" type="number" optional default="0"  
   理性回復剤の最大使用数。  
   :::  
-  ::: field name="expiring_medicine" type="number" optional default="0"  
-  48 時間以内に期限切れになる理性回復剤の最大使用数。  
+  ::: field name="medicine_expire_days" type="number" optional default="0"  
+  指定日数以内に期限切れになる理性回復剤を使用します。`0` は期限切れの理性回復剤を使用しないことを意味します。  
+  :::  
+  ::: field name="expiring_medicine" type="number" optional default="0" deprecated  
+  v6.8.0 で非推奨になりました。代わりに `medicine_expire_days` を使用してください。  
   :::  
   ::: field name="stone" type="number" optional default="0"  
   純正源石の最大使用数。  
@@ -197,7 +202,7 @@ Bilibili：`张三`、入力可能：`张三`、`张`、`三`
    "enable": true,
    "stage": "1-7",
    "medicine": 1,
-   "expiring_medicine": 0,
+   "medicine_expire_days": 2,
    "stone": 0,
    "times": 10,
    "series": 0,
@@ -259,7 +264,14 @@ Bilibili：`张三`、入力可能：`张三`、`张`、`三`
 緊急招集の回数。`expedite` が true の場合のみ有効です。デフォルトは制限なし（`times` の上限まで）です。  
 :::  
 ::: field name="skip_robot" type="boolean" optional default="true"  
-ロボット タグが認識されたときにスキップするかどうか。  
+非推奨です。旧パラメータ互換のためにのみ残されています。  
+<br>
+`preserve_tags` が指定されておらず、この値が `true` の場合は `支援机械` を認識したときのみスキップします。`元素` は旧来の 1★ タグとしては扱われません。  
+:::
+::: field name="preserve_tags" type="array<string>" optional  
+現在の公開求人枠を保持したまま今回の募集をスキップしたい Tag 名の一覧です。デフォルトは空です。  
+<br>
+指定した Tag のいずれかを認識した場合、MAA はその枠を保持して今回の募集をスキップします。  
 :::  
 ::: field name="recruitment_time" type="object" optional  
 タグレベル（3 以上）と対応する希望採用時間（分単位）。デフォルト値は 540（つまり 09:00:00）です。
@@ -300,7 +312,7 @@ Bilibili：`张三`、入力可能：`张三`、`张`、`三`
    "set_time": true,
    "expedite": false,
    "expedite_times": 0,
-   "skip_robot": true,
+   "preserve_tags": ["支援机械"],
    "recruitment_time": {
       "3": 540,
       "4": 540
@@ -910,32 +922,44 @@ Sarkaz テーマ、Investment モード、「破棘成金分隊」または「�
 ::: field name="enable" type="boolean" optional default="true"  
 このタスクを有効にするかどうか。  
 :::  
-::: field name="theme" type="string" optional default="Fire"  
+::: field name="theme" type="string" optional default="Tales"  
 テーマ。
 <br>
-`Fire` - _砂中の火_
+`Fire` - _砂中の火_（終了）
 <br>
-`Tales` - _熱砂秘聞_  
+`Tales` - _熱砂秘聞_
+<br>
+`RelaunchAnchor` - _リローンチアンカー_  
 :::  
 ::: field name="mode" type="number" optional default="0"  
-モード。
+モード。テーマごとにサポートするモードが異なります：
 <br>
-`0` - ポイント稼ぎと建造ポイント、戦闘に入って直接退出。
+**Tales（熱砂秘聞）：**
 <br>
-`1` - 沙中之火：赤金稼ぎ、連絡員から水購入後基地で鍛造；沙洲遗闻：支援アイテムを組み立てて生息ポイントを稼ぐ。  
+`0` - セーブなし、ステージ出入りで生息ポイントを稼ぐ。
+<br>
+`1` - セーブあり、支援アイテムを組み立てて生息ポイントを稼ぐ。
+<br>
+**RelaunchAnchor（リローンチアンカー）：**
+<br>
+`16` (`RA1`) - RA-1、精耕細作→建設→資源納品→決算を自動ループ。
+<br>
+`32` (`RA15`) - RA-15、シヴィライト・エテルナで60撃破ミッションを達成。
+<br>
+`48` (`RA4`) - RA-4、「計画経営」で得た赤金を使ってエリアを解放し、ヴィシャデルでボス討伐を完了する。
 :::  
 ::: field name="tools_to_craft" type="array<string>" optional default="[&quot;荧光棒&quot;]"  
-自動製造品。サブストリング入力推奨。  
+自動製造品。サブストリング入力推奨。Tales テーマのみ有効。  
 :::  
 ::: field name="increment_mode" type="number" optional default="0"  
-クリック型。
+クリック型。Tales テーマのみ有効。
 <br>
 `0` - 連続クリック
 <br>
 `1` - 長押し  
 :::  
 ::: field name="num_craft_batches" type="number" optional default="16"  
-単次最大製造バッチ数。  
+単次最大製造バッチ数。Tales テーマのみ有効。  
 :::  
 ::::
 

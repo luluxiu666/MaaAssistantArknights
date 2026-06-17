@@ -23,6 +23,7 @@ using System.Windows.Input;
 using HandyControl.Data;
 using HandyControl.Tools;
 using JetBrains.Annotations;
+using MaaWpfGui.Configuration.Factory;
 using MaaWpfGui.Constants;
 using MaaWpfGui.Helper;
 using MaaWpfGui.Main;
@@ -72,6 +73,28 @@ public class RootViewModel : Conductor<Screen>.Collection.OneActive
         });
 
         _ = Instances.VersionUpdateDialogViewModel.ShowUpdateOrDownload();
+
+        // 主窗口已显示，此时弹窗不会导致 WPF 因无窗口而退出
+        Task.Run(ConfigBrokenCheck);
+        Task.Run(ToastNotificationCheck);
+    }
+
+    private static void ConfigBrokenCheck()
+    {
+        var recoveryMessage = ConfigFactory.ConsumePendingRecoveryMessage();
+        if (recoveryMessage is not null)
+        {
+            MessageBoxHelper.Show(recoveryMessage, LocalizationHelper.GetString("ConfigurationBrokenCaption"), MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private static void ToastNotificationCheck()
+    {
+        var (isAvailable, detail) = ToastNotification.ToastNotificationCheck();
+        if (!isAvailable)
+        {
+            Instances.TaskQueueViewModel.AddLog(LocalizationHelper.GetStringFormat("ToastNotificationUnavailable", detail), UiLogColor.Error);
+        }
     }
 
     private static void ShowVersionMismatchWarningOnStartup()
@@ -185,7 +208,7 @@ public class RootViewModel : Conductor<Screen>.Collection.OneActive
         }
     }
 
-    private bool _windowTitleScrollable = Convert.ToBoolean(ConfigurationHelper.GetGlobalValue(ConfigurationKeys.WindowTitleScrollable, bool.FalseString));
+    private bool _windowTitleScrollable = ConfigurationHelper.GetGlobalValue(ConfigurationKeys.WindowTitleScrollable, false);
 
     /// <summary>
     /// Gets or sets a value indicating whether to scroll the window title.
@@ -196,7 +219,7 @@ public class RootViewModel : Conductor<Screen>.Collection.OneActive
         set => SetAndNotify(ref _windowTitleScrollable, value);
     }
 
-    private bool _showCloseButton = !Convert.ToBoolean(ConfigurationHelper.GetGlobalValue(ConfigurationKeys.HideCloseButton, bool.FalseString));
+    private bool _showCloseButton = !ConfigurationHelper.GetGlobalValue(ConfigurationKeys.HideCloseButton, false);
 
     /// <summary>
     /// Gets or sets a value indicating whether to show close button.

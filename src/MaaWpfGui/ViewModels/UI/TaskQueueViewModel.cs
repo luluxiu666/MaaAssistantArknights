@@ -18,17 +18,18 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using JetBrains.Annotations;
+using MaaWpfGui.Configuration;
 using MaaWpfGui.Configuration.Factory;
 using MaaWpfGui.Configuration.Single.MaaTask;
 using MaaWpfGui.Constants;
@@ -177,9 +178,19 @@ public class TaskQueueViewModel : Screen
                 TaskItemViewModels[e.NewStartingIndex].Index = e.NewStartingIndex;
                 TaskItemViewModels.FirstOrDefault(i => i.EnableSetting)?.EnableSetting = false;
                 TaskItemViewModels[e.NewStartingIndex].EnableSetting = true;
+
+                for (int i = e.NewStartingIndex + 1; i < TaskItemViewModels.Count; i++)
+                {
+                    TaskItemViewModels[i].Index = i;
+                }
             }
             else if (e.Action == NotifyCollectionChangedAction.Remove)
             {
+                foreach (var item in e.OldItems?.OfType<TaskItemViewModel>() ?? [])
+                {
+                    (item as IDisposable)?.Dispose(); // 释放事件订阅; 暂未支持TaskItemViewModels.clear()
+                }
+
                 if (e.OldStartingIndex >= 0 && e.OldStartingIndex < ConfigFactory.CurrentConfig.TaskQueue.Count)
                 {
                     TaskSettingVisibilities.SetTaskSettingVisible(ConfigFactory.CurrentConfig.TaskQueue[e.OldStartingIndex], false);
@@ -989,7 +1000,7 @@ public class TaskQueueViewModel : Screen
             var task = ConfigFactory.CurrentConfig.TaskQueue.ElementAt(i);
             if (task is not null)
             {
-                taskqueue.Add(new TaskItemViewModel(task.NameDisplay, task.IsEnable) { Index = i });
+                taskqueue.Add(new TaskItemViewModel(task.NameOrTaskType, task.IsEnable) { Index = i });
             }
         }
 
@@ -1329,7 +1340,7 @@ public class TaskQueueViewModel : Screen
         if (Activator.CreateInstance(taskName) is BaseTask task)
         {
             ConfigFactory.CurrentConfig.TaskQueue.Add(task);
-            TaskItemViewModels.Add(new TaskItemViewModel(task.NameDisplay));
+            TaskItemViewModels.Add(new TaskItemViewModel(task.NameOrTaskType));
             AchievementTrackerHelper.Instance.Unlock(AchievementIds.QueueExpansion);
             AchievementTrackerHelper.Instance.TrackManualTaskAddition(
                 task.TaskType.ToString(),
@@ -1370,7 +1381,7 @@ public class TaskQueueViewModel : Screen
             if (taskItem.Index < ConfigFactory.CurrentConfig.TaskQueue.Count)
             {
                 ConfigFactory.CurrentConfig.TaskQueue[taskItem.Index].Name = newName;
-                taskItem.Name = ConfigFactory.CurrentConfig.TaskQueue[taskItem.Index].NameDisplay;
+                taskItem.Name = ConfigFactory.CurrentConfig.TaskQueue[taskItem.Index].NameOrTaskType;
                 AddLog(LocalizationHelper.GetStringFormat("TaskRenamed", newName), UiLogColor.Info);
             }
             else
@@ -1411,6 +1422,37 @@ public class TaskQueueViewModel : Screen
         {
             task.IsEnable = originalIsEnable;
         }
+    }
+
+    /// <summary>
+    /// 复制任务
+    /// </summary>
+    /// <param name="taskItem">任务项</param>
+    [UsedImplicitly]
+    public void CopyTask(TaskItemViewModel taskItem)
+    {
+        if (taskItem == null || !Idle)
+        {
+            return;
+        }
+
+        var index = taskItem.Index;
+        if (index < 0 || index >= ConfigFactory.CurrentConfig.TaskQueue.Count)
+        {
+            return;
+        }
+
+        var oldTask = ConfigFactory.CurrentConfig.TaskQueue[index];
+        var oldTaskJson = JsonSerializer.Serialize(oldTask);
+        if (JsonSerializer.Deserialize(oldTaskJson, oldTask.GetType()) is not BaseTask newTask)
+        {
+            AddLog(LocalizationHelper.GetString("TaskCopyFailed"), UiLogColor.Error);
+            return;
+        }
+        newTask.Name = newTask.NameOrTaskType + " (2)";
+        ConfigFactory.CurrentConfig.TaskQueue.Insert(index + 1, newTask);
+        TaskItemViewModels.Insert(index + 1, new TaskItemViewModel(newTask.NameOrTaskType));
+        AddLog(LocalizationHelper.GetStringFormat("TaskCopied", newTask.NameOrTaskType), UiLogColor.Info);
     }
 
     /// <summary>
@@ -1488,7 +1530,7 @@ public class TaskQueueViewModel : Screen
         set => SetAndNotify(ref _showInverse, value);
     }
 
-    private string _inverseShowText = Convert.ToBoolean(ConfigurationHelper.GetValue(ConfigurationKeys.MainFunctionInverseMode, bool.FalseString))
+    private string _inverseShowText = ConfigurationHelper.GetValue(ConfigurationKeys.MainFunctionInverseMode, false)
         ? LocalizationHelper.GetString("Inverse")
         : LocalizationHelper.GetString("Clear");
 
@@ -1501,7 +1543,7 @@ public class TaskQueueViewModel : Screen
         private set => SetAndNotify(ref _inverseShowText, value);
     }
 
-    private string _inverseMenuText = Convert.ToBoolean(ConfigurationHelper.GetValue(ConfigurationKeys.MainFunctionInverseMode, bool.FalseString))
+    private string _inverseMenuText = ConfigurationHelper.GetValue(ConfigurationKeys.MainFunctionInverseMode, false)
         ? LocalizationHelper.GetString("Clear")
         : LocalizationHelper.GetString("Inverse");
 
@@ -1820,7 +1862,7 @@ public class TaskQueueViewModel : Screen
             _logger.Information("Index {Index}, Type {TaskType}, Name {TaskName}, IsEnable {IsEnable}",
                 index,
                 item.TaskType,
-                item.NameDisplay,
+                item.NameOrTaskType,
                 item.IsEnable);
             if (!IsTaskEnable(item))
             {
@@ -1839,11 +1881,11 @@ public class TaskQueueViewModel : Screen
                         break;
                     case false:
                         taskRet = false;
-                        AddLog(LocalizationHelper.GetStringFormat("TaskAppend.Error", LocalizationHelper.GetString(item.TaskType.ToString()), item.NameDisplay), UiLogColor.Error);
+                        AddLog(LocalizationHelper.GetStringFormat("TaskAppend.Error", LocalizationHelper.GetString(item.TaskType.ToString()), item.NameOrTaskType), UiLogColor.Error);
                         SetTaskStatus(index, TaskItemStatus.Error);
                         break;
                     case null:
-                        AddLog(LocalizationHelper.GetStringFormat("TaskAppend.Skip", LocalizationHelper.GetString(item.TaskType.ToString()), item.NameDisplay), UiLogColor.Info);
+                        AddLog(LocalizationHelper.GetStringFormat("TaskAppend.Skip", LocalizationHelper.GetString(item.TaskType.ToString()), item.NameOrTaskType), UiLogColor.Info);
                         SetTaskStatus(index, TaskItemStatus.Skipped);
                         break;
                 }
@@ -1851,7 +1893,7 @@ public class TaskQueueViewModel : Screen
             catch (Exception ex)
             {
                 taskRet = false;
-                AddLog(LocalizationHelper.GetStringFormat("TaskAppend.Error", LocalizationHelper.GetString(item.TaskType.ToString()), item.NameDisplay) + "\n" + ex.Message, UiLogColor.Error);
+                AddLog(LocalizationHelper.GetStringFormat("TaskAppend.Error", LocalizationHelper.GetString(item.TaskType.ToString()), item.NameOrTaskType) + "\n" + ex.Message, UiLogColor.Error);
             }
         }
 
@@ -2125,15 +2167,6 @@ public class TaskQueueViewModel : Screen
             {
                 yield return instance;
             }
-        }
-    }
-
-    public static void InvokeProcSubTaskMsg(AsstMsg msg, JObject details)
-    {
-        foreach (var instance in _taskViewModelTypes)
-        {
-            // 调用 ProcSubTaskMsg 方法
-            instance.ProcSubTaskMsg(msg, details);
         }
     }
 

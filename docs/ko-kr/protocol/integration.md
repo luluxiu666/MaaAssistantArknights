@@ -64,6 +64,8 @@ AsstTaskId ASSTAPI AsstAppendTask(AsstHandle handle, const char* type, const cha
 공식 서버: `123****4567`인 경우 `123****4567`, `4567`, `123`, `3****4567` 입력 가능  
 <br>
 Bilibili 서버: `张三`인 경우 `张三`, `张`, `三` 입력 가능  
+<br>
+번체 중국어 서버: 계정은 Email 형식이며(예: `ab****01@gmail.com`), 별표가 없는 평문 부분(예: `01@gmail`) 입력을 권장합니다  
 :::  
 ::::
 
@@ -128,8 +130,11 @@ Bilibili 서버: `张三`인 경우 `张三`, `张`, `三` 입력 가능
 ::: field name="medicine" type="number" optional default="0"  
 이성 회복제 최대 사용 개수  
 :::  
-::: field name="expiring_medicine" type="number" optional default="0"  
-48시간 내 만료되는 이성 회복제 최대 사용 개수  
+::: field name="medicine_expire_days" type="number" optional default="0"  
+지정된 일수 이내에 만료되는 이성 회복제를 사용합니다. `0`은 만료 임박 이성 회복제를 사용하지 않음을 의미합니다.  
+:::  
+::: field name="expiring_medicine" type="number" optional default="0" deprecated  
+v6.8.0부터 폐기됨. 대신 `medicine_expire_days`를 사용하세요.  
 :::  
 ::: field name="stone" type="number" optional default="0"  
 오리지늄 최대 사용 개수  
@@ -184,7 +189,7 @@ Bilibili 서버: `张三`인 경우 `张三`, `张`, `三` 입력 가능
    "enable": true,
    "stage": "1-7",
    "medicine": 1,
-   "expiring_medicine": 0,
+   "medicine_expire_days": 2,
    "stone": 0,
    "times": 10,
    "series": 0,
@@ -248,7 +253,14 @@ Bilibili 서버: `张三`인 경우 `张三`, `张`, `三` 입력 가능
 즉시 완료 사용 횟수, `expedite`가 true일 때만 유효. 기본값은 무제한(즉 `times` 상한까지)  
 :::  
 ::: field name="skip_robot" type="boolean" optional default="true"  
-로봇 태그 인식 시 건너뛸지 여부  
+폐기 예정이며 구형 파라미터 호환용으로만 유지됩니다.  
+<br>
+`preserve_tags`가 없고 이 값이 `true`이면 `支援机械` 인식 시에만 건너뜁니다. `元素`는 더 이상 구형 1★ 태그로 취급하지 않습니다.  
+:::
+::: field name="preserve_tags" type="array<string>" optional  
+현재 공개모집 슬롯을 유지한 채 이번 모집을 건너뛸 Tag 이름 목록입니다. 기본값은 빈 배열입니다.  
+<br>
+지정한 Tag 중 하나라도 인식되면 MAA는 해당 슬롯을 유지하고 이번 모집을 건너뜁니다.  
 :::  
 ::: field name="recruitment_time" type="object" optional  
 태그 등급(3 이상)과 대응하는 희망 모집 시간(분 단위), 기본값은 모두 540(즉 09:00:00)
@@ -289,7 +301,7 @@ Yituliu 전송 ID, 기본값 비어 있음. `report_to_yituliu`가 true일 때�
    "set_time": true,
    "expedite": false,
    "expedite_times": 0,
-   "skip_robot": true,
+   "preserve_tags": ["支援机械"],
    "recruitment_time": {
       "3": 540,
       "4": 540
@@ -899,32 +911,44 @@ Sarkaz 테마, Investment 모드, "연금술 분대" 또는 "지원 분대"일 �
 ::: field name="enable" type="boolean" optional default="true"  
 본 작업 활성화 여부  
 :::  
-::: field name="theme" type="string" optional default="Fire"  
+::: field name="theme" type="string" optional default="Tales"  
 테마
 <br>
-`Fire` - _모래 속의 불_
+`Fire` - _모래 속의 불_（종료）
 <br>
-`Tales` - _사막 이야기_  
+`Tales` - _사막 이야기_
+<br>
+`RelaunchAnchor` - _리런치 앵커_  
 :::  
 ::: field name="mode" type="number" optional default="0"  
-모드
+모드. 테마마다 지원하는 모드가 다릅니다:
 <br>
-`0` - 점수 및 건설 포인트 파밍, 전투 진입 후 바로 포기
+**Tales（사막 이야기）：**
 <br>
-`1` - 모래 속의 불: 적금 파밍, 연락원에게 물 구매 후 기지에서 주조; 사막 이야기: 자동 아이템 제작 및 로드 반복으로 화폐 파밍  
+`0` - 세이브 없음, 스테이지 반복으로 번영의 선물 획득。
+<br>
+`1` - 세이브 있음, 도구 제작으로 번영의 선물 획득。
+<br>
+**RelaunchAnchor（리런치 앵커）：**
+<br>
+`16` (`RA1`) - RA-1, 정경세작→건설→자원 납품→결산 자동 루프。
+<br>
+`32` (`RA15`) - RA-15, 시빌라이트 에테르나로 60킬 미션 달성。
+<br>
+`48` (`RA4`) - RA-4, "경영 계획"으로 얻은 적금을 사용하여 지역을 해금하고, 비샤델로 보스 처치 임무를 완료합니다。
 :::  
 ::: field name="tools_to_craft" type="array<string>" optional default="[&quot;荧光棒&quot;]"  
-자동 제작 아이템, 부분 문자열 입력 권장  
+자동 제작 아이템, 부분 문자열 입력 권장. Tales 테마에서만 유효  
 :::  
 ::: field name="increment_mode" type="number" optional default="0"  
-클릭 유형
+클릭 유형. Tales 테마에서만 유효
 <br>
 `0` - 연타
 <br>
 `1` - 꾹 누르기
 :::  
 ::: field name="num_craft_batches" type="number" optional default="16"  
-1회 최대 제작 배치 수  
+1회 최대 제작 배치 수. Tales 테마에서만 유효  
 :::  
 ::::
 

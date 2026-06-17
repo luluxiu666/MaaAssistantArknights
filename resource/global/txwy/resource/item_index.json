@@ -39,6 +39,30 @@
         "sortId": 70001,
         "usage": "記錄了作戰錄影的存儲裝置，可以極大增加幹員的經驗值。"
     },
+    "2026recruitment10_1": {
+        "classifyType": "CONSUME",
+        "description": "出於羅德島在戰略上的種種考量，在批量招攬人才的同時也進行了針對性的尋訪，以便獲得個別特殊人才的協助。",
+        "icon": "2026recruitment10_1.png",
+        "name": "α類歡慶尋訪憑證",
+        "sortId": 50107,
+        "usage": "羅德島人事部特別批發的許可書，向獵頭公司提出了若干項特殊需求，一次可以招聘十位幹員。"
+    },
+    "2026recruitment10_2": {
+        "classifyType": "CONSUME",
+        "description": "出於羅德島在戰略上的種種考量，在批量招攬人才的同時也進行了針對性的尋訪，以便獲得個別特殊人才的協助。",
+        "icon": "2026recruitment10_2.png",
+        "name": "β類歡慶尋訪憑證",
+        "sortId": 50107,
+        "usage": "羅德島人事部特別批發的許可書，向獵頭公司提出了若干項特殊需求，一次可以招聘十位幹員。"
+    },
+    "2026recruitment10_3": {
+        "classifyType": "CONSUME",
+        "description": "出於羅德島在戰略上的種種考量，在批量招攬人才的同時也進行了針對性的尋訪，以便獲得個別特殊人才的協助。",
+        "icon": "2026recruitment10_3.png",
+        "name": "γ類歡慶尋訪憑證",
+        "sortId": 50107,
+        "usage": "羅德島人事部特別批發的許可書，向獵頭公司提出了若干項特殊需求，一次可以招聘十位幹員。"
+    },
     "30011": {
         "classifyType": "MATERIAL",
         "description": "富含有機物，常見於源石揮發殆盡後的地區。相對源石來說是較為容易採集的材料。",
@@ -1151,6 +1175,14 @@
         "sortId": 10322,
         "usage": "新型招聘合約所約定的一種時限貨幣，累積一定數量後可在指定時期內招聘指定幹員。"
     },
+    "LMTGS_COIN_6701": {
+        "classifyType": "NORMAL",
+        "description": "與獵頭公司長久且穩定的合作關係帶來的回報，可有效控制支出。不過，但願不是每次都需要用到這個手段。",
+        "icon": "LMTGS_COIN_6701.png",
+        "name": "尋訪數據契約",
+        "sortId": 10323,
+        "usage": "新型招聘合約所約定的一種時限貨幣，累積一定數量後可在指定時期內招聘指定幹員。"
+    },
     "LMTGS_COIN_903": {
         "classifyType": "NORMAL",
         "description": "與獵頭公司長久且穩定的合作關係帶來的回報，可有效控制支出。不過，但願不是每次都需要用到這個手段。",
@@ -2231,6 +2263,14 @@
         "sortId": -10000,
         "usage": "美輪美奐的夢境拼圖碎片。碎片遍布城堡的各個角落，將其悉心收集起來，可以拼湊出一幅幅定格美夢的畫面。"
     },
+    "act46side_token_detector": {
+        "classifyType": "NONE",
+        "description": "萊茵生命研發的專用於謝拉格境內的探測儀器，用來收集這片神秘雪境的各種資料，在低溫環境下也能保持穩定性。“神話只是未明緣由的現實，科學總有一天會扯下祂的面紗。”——埃琳娜堅定地相信著。",
+        "icon": "act46side_token_detector.png",
+        "name": "雪地用多功能探測器",
+        "sortId": -10000,
+        "usage": "因雪崩而散落在各處的多功能探測儀器，撿到的話請交回觀測站，工作人員會用實際物資表示感謝。"
+    },
     "act4bossrush_milestone_point": {
         "classifyType": "NONE",
         "description": "模擬中的對錯並不重要，它們只是種輔助，幫助你在實戰中做出正確的選擇。",
@@ -2310,6 +2350,22 @@
         "name": "行動協議",
         "sortId": -10000,
         "usage": "作為協議的象徵，可用於解鎖更多危機合約內容。"
+    },
+    "act6bossrush_milestone_point": {
+        "classifyType": "NONE",
+        "description": "模擬中的對錯並不重要，它們只是種輔助，幫助你在實戰中做出正確的選擇。",
+        "icon": "act6bossrush_milestone_point.png",
+        "name": "試煉經驗",
+        "sortId": -10000,
+        "usage": "試煉結束後獲得的經驗，可以提升試煉等級。"
+    },
+    "act6bossrush_token_relic": {
+        "classifyType": "NONE",
+        "description": "未解碼的數據方塊。永遠記住，資訊轉換往往伴隨著不可避免的損耗。善用資訊儲存工具，但別依賴它們。",
+        "icon": "act6bossrush_token_relic.png",
+        "name": "數據黑盒",
+        "sortId": -10000,
+        "usage": "用於對遏制單元進行數據迭代。"
     },
     "act6collection_point_token": {
         "classifyType": "NONE",
@@ -2751,6 +2807,14 @@
         "sortId": -10000,
         "usage": "一次性自助晶片印刻器械，存儲了大量訓練記錄與材料，根據重裝幹員們的需求，可以輕鬆印刻出晶片組合。"
     },
+    "itempack_recruit_1": {
+        "classifyType": "NONE",
+        "description": "活動即宣傳，因此這段時間人事部業務繁忙也是情有可原，記住了，你欠■■■一個人情。",
+        "icon": "itempack_recruit_1.png",
+        "name": "2026感謝慶典招聘補給",
+        "sortId": -10000,
+        "usage": "為滿足招募需求而準備的人力資源包，供相關人員透過公開管道大量招募幹員。"
+    },
     "main16_spitem_1": {
         "classifyType": "NORMAL",
         "description": "從前，人們說苦難自它的出現萌生；如今，人們說悲劇從它的消失肇始。",
@@ -2814,6 +2878,14 @@
         "name": "數據增補儀",
         "sortId": 90002,
         "usage": "用於升級幹員的模組。"
+    },
+    "precious_material_voucher_perm": {
+        "classifyType": "CONSUME",
+        "description": "為應對加工時部分材料緊缺的問題，採購部發行了提貨券供幹員們自行取用所需的材料。",
+        "icon": "precious_material_voucher_perm.png",
+        "name": "稀有材料提貨券",
+        "sortId": 60004,
+        "usage": "羅德島採購部特別發行的提貨券，憑此券可領取一份稀有品質的精英材料。"
     },
     "premium_material_issue_voucher": {
         "classifyType": "CONSUME",
@@ -3031,6 +3103,14 @@
         "sortId": 60106,
         "usage": "裝有各種物資補給，包含多種隨機材料。"
     },
+    "randomMaterial_6d5": {
+        "classifyType": "CONSUME",
+        "description": "羅德島從各地採購、儲備的材料補給箱。不過因為缺乏系統性的整理收納，每一個箱子裡都裝著截然不同的材料。",
+        "icon": "randomMaterial_6d5.png",
+        "name": "2026感謝慶典物資補給",
+        "sortId": 60117,
+        "usage": "裝有各種物資補給，包含多種隨機材料。"
+    },
     "randomMaterial_7": {
         "classifyType": "CONSUME",
         "description": "羅德島從各地採購、儲備的材料補給箱。不過因為缺乏系統性的整理收納，每一個箱子裡都裝著截然不同的材料。",
@@ -3071,6 +3151,14 @@
         "sortId": 60116,
         "usage": "裝有銃械工坊送來的各種物資補給，包含多種隨機材料。"
     },
+    "randomMaterial_act46side": {
+        "classifyType": "CONSUME",
+        "description": "維多利亞在謝拉格大量投放的物資包，上面用維多利亞語和謝拉格語寫著“偉大的耶拉岡德護佑維多利亞與謝拉格友誼長存”。",
+        "icon": "randomMaterial_act46side.png",
+        "name": "緊急避難包",
+        "sortId": 60118,
+        "usage": "用於雪災救援的物資補給包，包含多種隨機材料。"
+    },
     "randomMaterial_amiya": {
         "classifyType": "CONSUME",
         "description": "裡面不僅裝著各種物資，還有大家對小壽星最真誠的祝願。",
@@ -3086,6 +3174,14 @@
         "name": "查訪補給",
         "sortId": 60115,
         "usage": "不知何人將其交予你，裝有各種物資補給，包含多種隨機材料。"
+    },
+    "randomMaterial_message1": {
+        "classifyType": "CONSUME",
+        "description": "在模型的一側簽有諾希斯和恩希歐迪斯的名字。很顯然，放眼整片大地，這樣的模型不會有第二座。值得一提的是，隨模型一起送來的，還有一個帶有蔓珠院標誌的盒子，盒子裡放著各種可以擺在模型上的小人——都是你認識的人。這讓人不禁覺得，用它來兌換龍門幣有點可惜。",
+        "icon": "randomMaterial_message1.png",
+        "name": "一號計劃決定版",
+        "sortId": 60119,
+        "usage": "一座高速戰艦的模型，可兌換龍門幣。"
     },
     "randomMaterial_rhine2": {
         "classifyType": "CONSUME",
