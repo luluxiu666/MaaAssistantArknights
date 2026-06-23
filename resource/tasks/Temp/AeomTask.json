@@ -1,0 +1,978 @@
+{
+    "beginTask":{
+        "doc": "最开始的任务",
+        "algorithm": "JustReturn",
+        "sub": [
+                "hangUpTask",
+                "AllianceRewardTask",
+                "VipRewardTask",
+                "cityDefaultRewardTask",
+                "ShopRewardTask"
+        ],
+        "subErrorIgnored": true,
+        "next": [
+                "GotToField"
+                ]
+    },
+    "ResourceGather":{
+        "doc": "资源采集",
+        "algorithm": "JustReturn",
+        "sub": [
+            "SuperResourceGather"
+        ]
+    },
+    "AutoAttackMonster": {
+        "doc": "自动攻击怪物",
+        "algorithm": "JustReturn",
+        "sub": [
+            "SearchBtn",
+            "托管",
+            "SearchTeamFromLeft4",
+            "执行托管"
+        ]
+    },
+    "FoodResourceGather":{
+        "doc": "粮食资源采集",
+        "algorithm": "JustReturn",
+        "sub": [
+            "SearchBtn",
+            "FoodResTask",
+            "SearchTask",
+            "ClickCenterTask",
+            "CollectResTask",
+            "SearchTeamFromLeft2",
+            "TeamGoToTask"
+        ]
+    },
+    "WoodResourceGather":{
+        "doc": "木材资源采集",
+        "algorithm": "JustReturn",
+        "sub": [
+            "SearchBtn",
+            "WoodResTask",
+            "SearchTask",
+            "ClickCenterTask",
+            "CollectResTask",
+            "SearchTeamFromLeft3",
+            "TeamGoToTask"
+        ]
+    },
+    "RockResourceGather":{
+        "doc": "石头资源采集",
+        "algorithm": "JustReturn",
+        "sub": [
+            "SearchBtn",
+            "RockResTask",
+            "SearchTask",
+            "ClickCenterTask",
+            "CollectResTask",
+            "SearchTeamFromLeft4",
+            "TeamGoToTask"
+        ]
+    },
+    "GoldenResourceGather":{
+        "doc": "黄金资源采集",
+        "algorithm": "JustReturn",
+        "sub": [
+            "SearchBtn",
+            "GoldenResTask",
+            "SearchTask",
+            "ClickCenterTask",
+            "CollectResTask",
+            "SearchTeamFromLeft5",
+            "TeamGoToTask"
+        ]
+    },
+    "IronResourceGather":{
+        "doc": "铁矿资源采集",
+        "algorithm": "JustReturn",
+        "sub": [
+            "SearchBtn",
+            "IronResTask",
+            "SearchTask",
+            "ClickCenterTask",
+            "CollectResTask",
+            "SearchTeamFromRight5",
+            "TeamGoToTask"
+        ]
+    },
+    "SuperResourceGather":{
+        "doc": "超级资源采集",
+        "algorithm": "JustReturn",
+        "sub": [
+            "SearchBtn",
+            "SuperResTask",
+            "SearchTask",
+            "ClickCenterTask",
+            "CollectResTask",
+            "SearchTeamFromLeft1",
+            "TeamGoToTask"
+        ]
+    },
+    "SearchTeamFromLeft":{
+        "doc": "从左边找队伍",
+        "algorithm": "OcrDetect",
+        "text": ["5"],
+        "isAscii": true,
+        "baseTask": "BottomSlowlySwipeToTheLeft",
+        "postDelay": 1000,
+        "next": [
+            "SearchTeamFromLeft",
+            "SearchTeamFromRight"
+        ]
+    },
+    "SearchTeamFromLeft1":{
+        "baseTask": "SearchTeamFromLeft",
+        "doc": "从左边找队伍1",
+        "next": [
+            "SelectTeam1",
+            "SearchTeamFromLeft#next"
+        ]
+    },
+    "SearchTeamFromLeft2":{
+        "baseTask": "SearchTeamFromLeft",
+        "doc": "从左边找队伍2",
+        "next": [
+            "SelectTeam2",
+            "SearchTeamFromLeft#next"
+        ]
+    },
+    "SearchTeamFromLeft3":{
+        "baseTask": "SearchTeamFromLeft",
+        "doc": "从左边找队伍3",
+        "next": [
+            "SelectTeam3",
+            "SearchTeamFromLeft#next"
+        ]
+    },
+    "SearchTeamFromLeft4":{
+        "baseTask": "SearchTeamFromLeft",
+        "doc": "从左边找队伍4",
+        "next": [
+            "SelectTeam4",
+            "SearchTeamFromLeft#next"
+        ]
+    },
+    "SearchTeamFromLeft5":{
+        "baseTask": "SearchTeamFromLeft",
+        "doc": "从左边找队伍5",
+        "next": [
+            "SelectTeam5",
+            "SearchTeamFromLeft#next"
+        ]
+    },
+    "SearchTeamFromRight":{
+        "doc": "从右边找队伍",
+        "algorithm": "OcrDetect",
+        "text": ["1"],
+        "isAscii": true,
+        "baseTask": "BottomSlowlySwipeToTheRight",
+        "next": [
+            "SearchTeamFromRight",
+            "SearchTeamFromLeft"
+        ]
+    },
+    "SearchTeamFromRight1":{
+        "baseTask": "SearchTeamFromRight",
+        "doc": "从右边找队伍1",
+        "next": [
+            "SelectTeam1",
+            "SearchTeamFromRight#next"
+        ]
+    },
+    "SearchTeamFromRight2":{
+        "baseTask": "SearchTeamFromRight",
+        "doc": "从右边找队伍2",
+        "next": [
+            "SelectTeam2",
+            "SearchTeamFromRight#next"
+        ]
+    },
+    "SearchTeamFromRight3":{
+        "baseTask": "SearchTeamFromRight",
+        "doc": "从右边找队伍3",
+        "next": [
+            "SelectTeam3",
+            "SearchTeamFromRight#next"
+        ]
+    },
+    "SearchTeamFromRight4":{
+        "baseTask": "SearchTeamFromRight",
+        "doc": "从右边找队伍4",
+        "next": [
+            "SelectTeam4",
+            "SearchTeamFromRight#next"
+        ]
+    },
+    "SearchTeamFromRight5":{
+        "baseTask": "SearchTeamFromRight",
+        "doc": "从右边找队伍5",
+        "next": [
+            "SelectTeam5",
+            "SearchTeamFromRight#next"
+        ]
+    },
+    "SelectTeamByNameBaseTask":{
+        "doc": "通过名字选队",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "isAscii": true,
+        "roi": [0, 370, 1016, 350],
+        "preDelay": 1000,
+        "text": []
+    },
+    "SelectTeam1":{
+        "baseTask": "SelectTeamByNameBaseTask",
+        "text": ["1"]
+    },
+    "SelectTeam2":{
+        "baseTask": "SelectTeamByNameBaseTask",
+        "text": ["2"]
+    },
+    "SelectTeam3":{
+        "baseTask": "SelectTeamByNameBaseTask",
+        "text": ["布", "3"]
+    },
+    "SelectTeam4":{
+        "baseTask": "SelectTeamByNameBaseTask",
+        "isAscii": false,
+        "text": ["花木兰", "木兰"]
+    },
+    "SelectTeam5":{
+        "baseTask": "SelectTeamByNameBaseTask",
+        "isAscii": false,
+        "text": ["贞德"]
+    },
+    "SelectTeam5_ascii":{
+        "baseTask": "SelectTeamByNameBaseTask",
+        "text": ["5"]
+    },
+    "CollectResTask":{
+        "doc": "富饶资源",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["采集", "占"]
+    },
+    "TeamGoToTask":{
+        "doc": "出征",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["出征"]
+    },
+    "SuperResTask":{
+        "doc": "富饶资源",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["富饶的"]
+    },
+    "FoodResTask":{
+        "doc": "食物资源",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["食物"]
+    },
+    "WoodResTask":{
+        "doc": "木材资源",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["木材"]
+    },
+    "RockResTask":{
+        "doc": "石头资源",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["石头"]
+    },
+    "GoldenResTask":{
+        "doc": "黄金资源",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["黄金"]
+    },
+    "IronResTask":{
+        "doc": "铁矿资源",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["铁"]
+    },
+    "SearchTask":{
+        "doc": "搜索任务",
+        "fullMatch": true, 
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["搜索"]
+    },
+    "剑士":{
+        "doc": "剑士",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["剑士"]
+    },
+    "托管":{
+        "doc": "托管",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["托管"]
+    },
+    "执行托管":{
+        "doc": "执行托管",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["执行托管"]
+    },
+    "ClickCenterTask": {
+        "doc": "点击中心",
+        "algorithm": "JustReturn",
+        "action": "ClickRect",
+        "postDelay": 2000,
+        "specificRect": [564, 274, 161, 145]        
+    },
+    "BottomSlowlySwipeToTheLeft": {
+        "algorithm": "JustReturn",
+        "action": "Swipe",
+        "postDelay": 200,
+        "specificRect": [100, 540, 100, 100],
+        "specificRect_Doc": "滑动起点",
+        "rectMove": [800, 540, 100, 100],
+        "rectMove_Doc": "滑动终点",
+        "specialParams": [200, 1, 2, 0],
+        "specialParams_Doc": [
+            "滑动 duration",
+            "额外滑动？",
+            "slope in (zero means smooth, 1 means linear)",
+            "slope out"
+        ],
+        "next": ["#next"],
+        "maxTimes": 50
+    },
+    "BottomSlowlySwipeToTheRight": {
+        "algorithm": "JustReturn",
+        "action": "Swipe",
+        "postDelay": 200,
+        "specificRect": [880, 540, 100, 100],
+        "rectMove": [300, 540, 100, 100],
+        "specialParams": [200, 1, 2, 0],
+        "next": ["#next"],
+        "maxTimes": 50
+    },
+    "LeftSlowlySwipeToTheUp": {  
+        "algorithm": "JustReturn",  
+        "action": "Swipe",  
+        "postDelay": 200,  
+        "specificRect": [172, 650, 100, 100],  
+        "specificRect_Doc": "滑动起点（左侧区域底部）",  
+        "rectMove": [172, 100, 100, 100],  
+        "rectMove_Doc": "滑动终点（左侧区域顶部）",  
+        "specialParams": [200, 1, 2, 0],  
+        "specialParams_Doc": [  
+            "滑动 duration",  
+            "额外滑动？",  
+            "slope in (zero means smooth, 1 means linear)",  
+            "slope out"  
+        ],  
+        "next": ["#next"],  
+        "maxTimes": 50  
+    },  
+    "LeftSlowlySwipeToTheDown": {  
+        "algorithm": "JustReturn",  
+        "action": "Swipe",  
+        "postDelay": 200,  
+        "specificRect": [172, 100, 100, 100],  
+        "specificRect_Doc": "滑动起点（左侧区域顶部）",  
+        "rectMove": [172, 650, 100, 100],  
+        "rectMove_Doc": "滑动终点（左侧区域底部）",  
+        "specialParams": [200, 1, 2, 0],  
+        "specialParams_Doc": [  
+            "滑动 duration",  
+            "额外滑动？",  
+            "slope in (zero means smooth, 1 means linear)",  
+            "slope out"  
+        ],  
+        "next": ["#next"],  
+        "maxTimes": 50  
+    },
+    "ShopRewardTask":{
+        "doc": "商店奖励",
+        "algorithm": "JustReturn",
+        "sub": ["113246_1067_56_70_51__1017_6_170_151.png",
+                "EnsureTask",
+                "BackTask"
+                ]
+    },
+    "cityDefaultRewardTask":{
+        "doc": "内城默认奖励",
+        "algorithm": "JustReturn",
+        "sub": ["220624_865_593_48_30__815_543_148_130.png",
+                "220624_1121_555_63_61__1071_505_163_161.png",
+                "220728_1121_558_60_53__1071_508_160_153.png",
+                "220740_1124_555_59_58__1074_505_159_158.png",
+                "220750_1125_560_57_44__1075_510_157_144.png",
+                "220624_1121_555_63_61__1071_505_163_161.png",
+                "220728_1121_558_60_53__1071_508_160_153.png",
+                "220740_1124_555_59_58__1074_505_159_158.png",
+                "220750_1125_560_57_44__1075_510_157_144.png",
+                "220624_1121_555_63_61__1071_505_163_161.png",
+                "220728_1121_558_60_53__1071_508_160_153.png",
+                "220740_1124_555_59_58__1074_505_159_158.png",
+                "220750_1125_560_57_44__1075_510_157_144.png",
+                "220624_1121_555_63_61__1071_505_163_161.png",
+                "220728_1121_558_60_53__1071_508_160_153.png",
+                "220740_1124_555_59_58__1074_505_159_158.png",
+                "220750_1125_560_57_44__1075_510_157_144.png"
+        ],
+        "subErrorIgnored": true,
+        "maxTimes": 2
+    },
+    "cityDefaultRewardTaskInf":{
+        "doc": "内城默认奖励",
+        "algorithm": "JustReturn",
+        "sub": ["220624_865_593_48_30__815_543_148_130.png",
+                "220624_1121_555_63_61__1071_505_163_161.png",
+                "220728_1121_558_60_53__1071_508_160_153.png",
+                "220740_1124_555_59_58__1074_505_159_158.png",
+                "220750_1125_560_57_44__1075_510_157_144.png",
+                "cityDefaultRewardTaskInf"
+        ],
+        "subErrorIgnored": true,
+        "maxTimes": 2
+    },
+    "VipRewardTask": {
+        "doc": "VIP奖励",
+        "algorithm": "JustReturn",
+        "subErrorIgnored": true,
+        "sub": ["103408_107_46_63_24__57_0_163_124.png",
+                "103420_599_656_28_24__549_596_128_124.png",
+                "103420_869_662_85_27__819_593_185_127.png",
+                "EnsureTask",
+                "BackTask"
+        ]
+    },
+    "AllianceRewardTask":{
+        "doc": "同盟奖励",
+        "algorithm": "JustReturn",
+        "subErrorIgnored": true,
+        "sub": ["102611_865_651_66_52__815_568_166_152.png",
+                "102625_457_545_56_49__407_495_156_149.png",
+                "102726_1094_113_77_28__1044_63_177_128.png",
+                "102726_1104_234_58_35__1054_184_158_135.png",
+                "EnsureTask",
+                "BackTask",
+                "BackTask"
+                ]
+    },
+    "hangUpTask":{
+        "doc": "挂机任务",
+        "algorithm": "JustReturn",
+        "subErrorIgnored": true,
+        "sub": [
+                "hangUpTask1",
+                "hangUpTask2"
+                ]
+    },
+    "hangUpTask1":{
+        "doc": "挂机任务-征战",
+        "algorithm": "JustReturn",
+        "subErrorIgnored": true,
+        "sub": ["220624_1170_631_67_62__1113_558_167_162.png",
+                "220814_1070_502_60_70__1020_452_160_170.png",
+                "232123_1153_599_75_51__1103_549_175_151.png",
+                "GetAndRetrun"
+                ]
+    },
+    "hangUpTask2":{
+        "doc": "挂机任务-海盗",
+        "algorithm": "JustReturn",
+        "subErrorIgnored": true,
+        "sub": ["220624_1170_631_67_62__1113_558_167_162.png",
+                "220814_1174_467_68_76__1112_417_168_176.png",
+                "220926_1154_595_77_70__1103_545_177_170.png",
+                "GetAndRetrun"
+                ]
+    },
+    "hangUpTask3":{
+        "doc": "挂机任务-闪耀",
+        "algorithm": "JustReturn",
+        "sub": ["220624_1170_631_67_62__1113_558_167_162.png",
+                "194744_1055_612_51_48__1005_562_151_148.png",
+                "194800_846_67_49_45__796_17_149_145.png",
+                "EnsureTask",
+                "194800_960_150_44_52__910_100_144_152.png",
+                "EnsureTask",
+                "194829_271_439_59_61__221_389_159_161.png",
+                "SearchTeamFromLeft1",
+                "194829_668_542_79_45__618_492_179_145.png",
+                "SearchTeamFromLeft3",
+                "BackTask"
+                ]
+    },
+    "GetAndRetrun":{
+        "doc": "领取并返回",
+        "algorithm": "JustReturn",
+        "sub": ["GetItTask", "EnsureTask", "BackTask"]
+    },
+    "GetItTask":{
+        "doc": "领取任务",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["领取"]
+    },
+    "EnsureTask":{
+        "doc": "领取任务",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": ["确定", "确认"]
+    },
+    "SearchBtn": {
+        "doc": "221032_180_573_37_36__130_523_137_136.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221032_180_573_37_36__130_523_137_136.png",
+        "roi": [
+            130,
+            523,
+            137,
+            136
+        ]
+    },
+    "BackTask": {
+        "doc": "221434_41_4_44_32__0_0_144_132.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221434_41_4_44_32__0_0_144_132.png",
+        "roi": [
+            0,
+            0,
+            144,
+            132
+        ]
+    },
+    "GotToField": {
+        "doc": "221010_46_602_78_69__0_551_178_169.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221010_46_602_78_69__0_551_178_169.png",
+        "roi": [
+            0,
+            551,
+            178,
+            169
+        ]
+    },
+    "220624_865_593_48_30__815_543_148_130.png": {
+        "doc": "220624_865_593_48_30__815_543_148_130.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220624_865_593_48_30__815_543_148_130.png",
+        "maxTimes": 2,
+        "roi": [
+            815,
+            543,
+            148,
+            130
+        ]
+    },
+    "220624_1121_555_63_61__1071_505_163_161.png": {
+        "doc": "220624_1121_555_63_61__1071_505_163_161.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220624_1121_555_63_61__1071_505_163_161.png",
+        "maxTimes": 2,
+        "roi": [
+            1071,
+            505,
+            163,
+            161
+        ]
+    },
+    "220624_1170_631_67_62__1113_558_167_162.png": {
+        "doc": "220624_1170_631_67_62__1113_558_167_162.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220624_1170_631_67_62__1113_558_167_162.png",
+        "roi": [
+            1113,
+            558,
+            167,
+            162
+        ]
+    },
+    "220728_1121_558_60_53__1071_508_160_153.png": {
+        "doc": "220728_1121_558_60_53__1071_508_160_153.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220728_1121_558_60_53__1071_508_160_153.png",
+        "maxTimes": 2,
+        "roi": [
+            1071,
+            508,
+            160,
+            153
+        ]
+    },
+    "220740_1124_555_59_58__1074_505_159_158.png": {
+        "doc": "220740_1124_555_59_58__1074_505_159_158.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220740_1124_555_59_58__1074_505_159_158.png",
+        "maxTimes": 2,
+        "roi": [
+            1074,
+            505,
+            159,
+            158
+        ]
+    },
+    "220750_1125_560_57_44__1075_510_157_144.png": {
+        "doc": "220750_1125_560_57_44__1075_510_157_144.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220750_1125_560_57_44__1075_510_157_144.png",
+        "maxTimes": 2,
+        "roi": [
+            1075,
+            510,
+            157,
+            144
+        ]
+    },
+    "220814_1044_616_71_65__994_555_171_165.png": {
+        "doc": "220814_1044_616_71_65__994_555_171_165.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220814_1044_616_71_65__994_555_171_165.png",
+        "roi": [
+            994,
+            555,
+            171,
+            165
+        ]
+    },
+    "220814_1070_502_60_70__1020_452_160_170.png": {
+        "doc": "220814_1070_502_60_70__1020_452_160_170.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220814_1070_502_60_70__1020_452_160_170.png",
+        "roi": [
+            1020,
+            452,
+            160,
+            170
+        ]
+    },
+    "220814_1174_467_68_76__1112_417_168_176.png": {
+        "doc": "220814_1174_467_68_76__1112_417_168_176.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220814_1174_467_68_76__1112_417_168_176.png",
+        "roi": [
+            1112,
+            417,
+            168,
+            176
+        ]
+    },
+    "220907_1147_583_91_81__1089_533_191_181.png": {
+        "doc": "220907_1147_583_91_81__1089_533_191_181.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220907_1147_583_91_81__1089_533_191_181.png",
+        "roi": [
+            1089,
+            533,
+            191,
+            181
+        ]
+    },
+	"232123_1153_599_75_51__1103_549_175_151.png": {
+        "doc": "232123_1153_599_75_51__1103_549_175_151.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "232123_1153_599_75_51__1103_549_175_151.png",
+        "roi": [1103, 549, 175, 151]
+    },
+    "220926_1154_595_77_70__1103_545_177_170.png": {
+        "doc": "220926_1154_595_77_70__1103_545_177_170.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220926_1154_595_77_70__1103_545_177_170.png",
+        "roi": [
+            1103,
+            545,
+            177,
+            170
+        ]
+    },
+    "220938_529_576_259_52__479_526_359_152.png": {
+        "doc": "220938_529_576_259_52__479_526_359_152.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "220938_529_576_259_52__479_526_359_152.png",
+        "roi": [
+            479,
+            526,
+            359,
+            152
+        ]
+    },
+    "221000_560_568_196_47__510_518_296_147.png": {
+        "doc": "221000_560_568_196_47__510_518_296_147.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221000_560_568_196_47__510_518_296_147.png",
+        "roi": [
+            510,
+            518,
+            296,
+            147
+        ]
+    },
+    "221032_107_43_58_31__57_0_158_131.png": {
+        "doc": "221032_107_43_58_31__57_0_158_131.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221032_107_43_58_31__57_0_158_131.png",
+        "roi": [
+            57,
+            0,
+            158,
+            131
+        ]
+    },
+    "221122_44_364_289_67__0_314_389_167.png": {
+        "doc": "221122_44_364_289_67__0_314_389_167.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221122_44_364_289_67__0_314_389_167.png",
+        "roi": [
+            0,
+            314,
+            389,
+            167
+        ]
+    },
+    "221136_444_109_1_1__394_59_101_101.png": {
+        "doc": "221136_444_109_1_1__394_59_101_101.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221136_444_109_1_1__394_59_101_101.png",
+        "roi": [
+            394,
+            59,
+            101,
+            101
+        ]
+    },
+    "221202_370_375_88_52__320_325_188_152.png": {
+        "doc": "221202_370_375_88_52__320_325_188_152.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221202_370_375_88_52__320_325_188_152.png",
+        "roi": [
+            320,
+            325,
+            188,
+            152
+        ]
+    },
+    "221212_789_230_96_42__739_180_196_142.png": {
+        "doc": "221212_789_230_96_42__739_180_196_142.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221212_789_230_96_42__739_180_196_142.png",
+        "roi": [
+            739,
+            180,
+            196,
+            142
+        ]
+    },
+	"102611_865_651_66_52__815_568_166_152.png": {
+        "doc": "102611_865_651_66_52__815_568_166_152.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "102611_865_651_66_52__815_568_166_152.png",
+        "roi": [815, 568, 166, 152]
+    },
+	"102625_457_545_56_49__407_495_156_149.png": {
+        "doc": "102625_457_545_56_49__407_495_156_149.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "102625_457_545_56_49__407_495_156_149.png",
+        "roi": [407, 495, 156, 149]
+    },
+
+	"102726_1094_113_77_28__1044_63_177_128.png": {
+        "doc": "102726_1094_113_77_28__1044_63_177_128.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "102726_1094_113_77_28__1044_63_177_128.png",
+        "roi": [1044, 63, 177, 128]
+    },
+	"102726_1104_234_58_35__1054_184_158_135.png": {
+        "doc": "102726_1104_234_58_35__1054_184_158_135.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "102726_1104_234_58_35__1054_184_158_135.png",
+        "roi": [1054, 184, 158, 135]
+    },
+	"103408_107_46_63_24__57_0_163_124.png": {
+        "doc": "103408_107_46_63_24__57_0_163_124.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "103408_107_46_63_24__57_0_163_124.png",
+        "roi": [57, 0, 163, 124]
+    },
+	"103420_599_656_28_24__549_596_128_124.png": {
+        "doc": "103420_599_656_28_24__549_596_128_124.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "103420_599_656_28_24__549_596_128_124.png",
+        "roi": [549, 596, 128, 124]
+    },
+	"103420_869_662_85_27__819_593_185_127.png": {
+        "doc": "103420_869_662_85_27__819_593_185_127.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "103420_869_662_85_27__819_593_185_127.png",
+        "roi": [819, 593, 185, 127]
+    },
+	"113246_1067_56_70_51__1017_6_170_151.png": {
+        "doc": "113246_1067_56_70_51__1017_6_170_151.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "113246_1067_56_70_51__1017_6_170_151.png",
+        "roi": [1017, 6, 170, 151]
+    },
+	"113308_13_56_245_618__0_2_345_718.png": {
+        "doc": "113308_13_56_245_618__0_2_345_718.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "113308_13_56_245_618__0_2_345_718.png",
+        "roi": [0, 2, 345, 718]
+    },
+	"113436_513_520_60_38__463_470_160_138.png": {
+        "doc": "113436_513_520_60_38__463_470_160_138.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "113436_513_520_60_38__463_470_160_138.png",
+        "roi": [463, 470, 160, 138]
+    },
+	"113448_978_644_208_42__928_578_308_142.png": {
+        "doc": "113448_978_644_208_42__928_578_308_142.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "113448_978_644_208_42__928_578_308_142.png",
+        "roi": [928, 578, 308, 142]
+    },
+	"113458_353_543_586_69__303_493_686_169.png": {
+        "doc": "113458_353_543_586_69__303_493_686_169.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "113458_353_543_586_69__303_493_686_169.png",
+        "roi": [303, 493, 686, 169]
+    },
+	"194744_1055_612_51_48__1005_562_151_148.png": {
+        "doc": "194744_1055_612_51_48__1005_562_151_148.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194744_1055_612_51_48__1005_562_151_148.png",
+        "roi": [1005, 562, 151, 148]
+    },
+	"194800_846_67_49_45__796_17_149_145.png": {
+        "doc": "194800_846_67_49_45__796_17_149_145.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194800_846_67_49_45__796_17_149_145.png",
+        "roi": [796, 17, 149, 145]
+    },
+	"194800_960_150_44_52__910_100_144_152.png": {
+        "doc": "194800_960_150_44_52__910_100_144_152.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194800_960_150_44_52__910_100_144_152.png",
+        "roi": [910, 100, 144, 152]
+    },
+	"194811_0_0_1280_720__0_0_1280_720.png": {
+        "doc": "194811_0_0_1280_720__0_0_1280_720.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194811_0_0_1280_720__0_0_1280_720.png",
+        "roi": [0, 0, 1280, 720]
+    },
+	"194829_271_439_59_61__221_389_159_161.png": {
+        "doc": "194829_271_439_59_61__221_389_159_161.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194829_271_439_59_61__221_389_159_161.png",
+        "roi": [221, 389, 159, 161]
+    },
+	"194829_668_542_79_45__618_492_179_145.png": {
+        "doc": "194829_668_542_79_45__618_492_179_145.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194829_668_542_79_45__618_492_179_145.png",
+        "roi": [618, 492, 179, 145]
+    },
+	"194849_646_520_169_37__596_470_269_137.png": {
+        "doc": "194849_646_520_169_37__596_470_269_137.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194849_646_520_169_37__596_470_269_137.png",
+        "roi": [596, 470, 269, 137]
+    },
+	"194849_157_136_132_53__107_86_232_153.png": {
+        "doc": "194849_157_136_132_53__107_86_232_153.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194849_157_136_132_53__107_86_232_153.png",
+        "roi": [107, 86, 232, 153]
+    },
+	"194849_153_574_152_46__103_524_252_146.png": {
+        "doc": "194849_153_574_152_46__103_524_252_146.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194849_153_574_152_46__103_524_252_146.png",
+        "roi": [103, 524, 252, 146]
+    },
+	"194849_310_577_50_39__260_527_150_139.png": {
+        "doc": "194849_310_577_50_39__260_527_150_139.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194849_310_577_50_39__260_527_150_139.png",
+        "roi": [260, 527, 150, 139]
+    },
+	"194849_825_577_133_44__775_527_233_144.png": {
+        "doc": "194849_825_577_133_44__775_527_233_144.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194849_825_577_133_44__775_527_233_144.png",
+        "roi": [775, 527, 233, 144]
+    },
+	"194949_0_0_1280_720__0_0_1280_720.png": {
+        "doc": "194949_0_0_1280_720__0_0_1280_720.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "194949_0_0_1280_720__0_0_1280_720.png",
+        "roi": [0, 0, 1280, 720]
+    },
+	"195003_47_445_898_220__0_395_998_320.png": {
+        "doc": "195003_47_445_898_220__0_395_998_320.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "195003_47_445_898_220__0_395_998_320.png",
+        "roi": [0, 395, 998, 320]
+    },
+
+    "221229_1049_609_96_41__999_559_196_141.png": {
+        "doc": "221229_1049_609_96_41__999_559_196_141.png",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "221229_1049_609_96_41__999_559_196_141.png",
+        "roi": [
+            999,
+            559,
+            196,
+            141
+        ]
+    }
+}

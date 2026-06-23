@@ -2,7 +2,9 @@
 import argparse
 import sys
 from pathlib import Path
-
+import os
+os.environ["http_proxy"] = "http://127.0.0.1:1080"
+os.environ["https_proxy"] = "http://127.0.0.1:1080"
 sub_path = Path(__file__).parent.parent / "src" / "MaaUtils" / "tools"
 sys.path.append(str(sub_path))
 

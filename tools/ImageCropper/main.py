@@ -11,6 +11,8 @@ from maa.define import MaaAdbScreencapMethodEnum, MaaWin32ScreencapMethodEnum
 from maa.toolkit import Toolkit
 from roimage import Roi, Roimage
 
+import pyperclip
+
 # 初始化设备参数
 # device_serial = "127.0.0.1:16384"
 device_serial = None
@@ -320,6 +322,18 @@ def is_window_visible(win_name: str, destroyed: bool = False) -> bool:
         return cv2.getWindowProperty(win_name, cv2.WND_PROP_VISIBLE) > 0
     except cv2.error:
         return False
+def format_save_info(fileName, ori) -> str:
+    info = \
+    f'''\t"{fileName}": {{
+        "doc": "{fileName}",
+        "algorithm": "MatchTemplate",
+        "action": "ClickSelf",
+        "template": "{fileName}",
+        "maxTimes": 2,
+        "roi": {ori}
+    }},'''
+
+    return info
 
 
 if __name__ == "__main__":
@@ -436,6 +450,7 @@ if __name__ == "__main__":
         elif key not in [ord("s"), ord("S"), ord("\r"), ord("\n")]:
             continue
 
+        formatInfos = []
         for roi in crop_list:
             print("")
             img = roi.image
@@ -453,6 +468,7 @@ if __name__ == "__main__":
                 dst_file_path = dst_path / dst_filename
                 print(rf"dst: {dst_file_path.absolute()}")
                 cv2.imwrite(str(dst_file_path), roi.image)
+                formatInfos.append(format_save_info(dst_filename, get_amplified_roi_rectangle(roi)))
 
             if needColorMatch:
                 method, reverse, colors = match_color(img)
@@ -520,6 +536,14 @@ if __name__ == "__main__":
 
             print("")
             print("Press 'Q'/'ESC' to quit or just continute.")
+        formatInfosStr = "\n".join(formatInfos)
+        print("")
+        print(formatInfosStr)
+        pyperclip.copy(formatInfosStr)
+
+        # 使用print()函数输出到文件
+        with open('log.txt', 'a') as f:
+            print(formatInfosStr, file=f)
 
     print("Exiting...")
     cv2.destroyAllWindows()
