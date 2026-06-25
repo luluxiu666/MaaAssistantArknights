@@ -14,6 +14,22 @@
                 "GotToField"
                 ]
     },
+    "beginOnceTask":{
+        "doc": "最开始的任务",
+        "algorithm": "JustReturn",
+        "sub": [
+                "hangUpTask",
+                "AllianceRewardTask",
+                "arena",
+                "VipRewardTask",
+                "cityDefaultRewardTask",
+                "ShopRewardTask"
+        ],
+        "subErrorIgnored": true,
+        "next": [
+                "GotToField"
+                ]
+    },
     "arena": {
         "doc": "竞技场",
         "algorithm": "JustReturn",
@@ -21,12 +37,9 @@
             "180134_1108_663_23_25__1058_595_123_125.png",
             "180151_860_570_76_56__810_520_176_156.png",
             "180202_759_304_196_212__709_254_296_312.png",
-            "180218_880_662_76_30__830_590_176_130.png",
-            "MiddleSlowlySwipeToTheUp",
-            "180251_976_598_105_31__926_548_205_131.png",
-            "180305_720_576_120_49__670_526_220_149.png",
-            "180327_1212_9_25_21__1155_0_125_121.png",
-            "180337_534_607_209_51__484_557_309_151.png"
+            "arenaInf",
+            "arenaInf",
+            "arenaInf"
         ]
     },
     "arenaInf": {
@@ -391,7 +404,7 @@
         "rectMove": [626, 88, 162, 129],
         "specialParams": [200, 1, 2, 0],
         "next": ["#next"],
-        "preDelay":1000,
+        "preDelay":2000,
         "maxTimes": 50
     },
     "LeftSlowlySwipeToTheUp": {  
@@ -533,7 +546,8 @@
         "subErrorIgnored": true,
         "sub": [
                 "hangUpTask1",
-                "hangUpTask2"
+                "hangUpTask2",
+                "hangUpTask4"
                 ]
     },
     "hangUpTask1":{
@@ -581,7 +595,7 @@
                 "181451_976_138_62_29__926_88_162_129.png",
                 "181503_992_333_74_30__942_283_174_130.png",
                 "EnsureTask",
-                "181503_996_438_65_32__946_388_165_132.png",
+                "181503_992_333_74_30__942_283_174_130.png",
                 "EnsureTask",
                 "181849_1165_80_36_35__1115_30_136_135.png"
                 ]
@@ -1076,20 +1090,19 @@
     },
 	"180251_976_598_105_31__926_548_205_131.png": {
         "doc": "180251_976_598_105_31__926_548_205_131.png",
-        "algorithm": "MatchTemplate",
-        "action": "ClickSelf",
-        "template": "180251_976_598_105_31__926_548_205_131.png",
+        "algorithm": "JustReturn",
+        "action": "ClickRect",
         "maxTimes": 2,
         "preDelay": 2000,
-        "roi": [926, 548, 205, 131]
+        "specificRect": [926, 548, 205, 131]
     },
 	"180305_720_576_120_49__670_526_220_149.png": {
         "doc": "180305_720_576_120_49__670_526_220_149.png",
-        "algorithm": "MatchTemplate",
+        "algorithm": "OcrDetect",
         "action": "ClickSelf",
-        "template": "180305_720_576_120_49__670_526_220_149.png",
+        "text": ["挑战", "挑", "战"],
         "maxTimes": 2,
-        "roi": [670, 526, 220, 149]
+        "roi": [906, 546, 243, 132]
     },
 	"180327_1212_9_25_21__1155_0_125_121.png": {
         "doc": "180327_1212_9_25_21__1155_0_125_121.png",

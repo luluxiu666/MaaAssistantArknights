@@ -13,6 +13,62 @@ from roimage import Roi, Roimage
 
 import pyperclip
 
+# OCR 引擎（懒加载）：使用 RapidOCR (onnxruntime)，可识别中英文
+# pip install rapidocr-onnxruntime
+_ocr_engine = None
+
+def get_ocr_engine():
+    global _ocr_engine
+    if _ocr_engine is not None:
+        return _ocr_engine
+    try:
+        from rapidocr_onnxruntime import RapidOCR
+        _ocr_engine = RapidOCR()
+        print("[OCR] RapidOCR engine loaded.")
+    except Exception as e:
+        print(
+            f"[OCR] Failed to load RapidOCR ({e}).\n"
+            "      Please run: pip install rapidocr-onnxruntime"
+        )
+        _ocr_engine = False  # 使用 False 表示加载失败，避免重复尝试
+    return _ocr_engine
+
+def _fix_mojibake(s: str) -> str:
+    """修复 GBK 字节被错误以 Latin-1 解码产生的乱码（例如 'Àñ°üÀà»î¶¯' -> '礼包类活动'）。"""
+    if not s:
+        return s
+    # 如果本身存在中文字符，认为未乱码，原样返回
+    if any("\u4e00" <= ch <= "\u9fff" for ch in s):
+        return s
+    # 只在出现高位 Latin-1 字符时才尝试修复
+    if not any(ord(ch) >= 0x80 for ch in s):
+        return s
+    for enc in ("gbk", "gb18030"):
+        try:
+            fixed = s.encode("latin-1").decode(enc)
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            continue
+        if any("\u4e00" <= ch <= "\u9fff" for ch in fixed):
+            return fixed
+    return s
+
+def ocr_recognize(image: np.ndarray) -> list:
+    """对传入的 BGR 图像运行 OCR，返回识别出的文本列表（按置信度从高到低）。"""
+    engine = get_ocr_engine()
+    if not engine:
+        return []
+    try:
+        result, _ = engine(image)
+    except Exception as e:
+        print(f"[OCR] recognize error: {e}")
+        return []
+    if not result:
+        return []
+    # result 结构: [[box, text, score], ...]
+    items = [(_fix_mojibake(item[1]), float(item[2])) for item in result if item and len(item) >= 3]
+    items.sort(key=lambda x: x[1], reverse=True)
+    return [t for t, _ in items if t]
+
 # 初始化设备参数
 # device_serial = "127.0.0.1:16384"
 device_serial = None
@@ -336,6 +392,22 @@ def format_save_info(fileName, ori) -> str:
     return info
 
 
+def format_save_info_ocr(fileName, ori, texts: list) -> str:
+    # texts -> JSON 风格数组字符串，例如 ["挑战", "挑", "战"]
+    text_str = "[" + ", ".join(f'"{t}"' for t in texts) + "]"
+    info = \
+    f'''\t"{fileName}": {{
+        "doc": "{fileName}",
+        "algorithm": "OcrDetect",
+        "action": "ClickSelf",
+        "text": {text_str},
+        "maxTimes": 2,
+        "roi": {ori}
+    }},'''
+
+    return info
+
+
 if __name__ == "__main__":
     # Print Help Infos
     print(
@@ -346,6 +418,7 @@ if __name__ == "__main__":
         "Hold down the right mouse button, drag mouse to move the image.\n"
         "Use the mouse wheel to zoom the image.\n"
         "press 'S' or 'ENTER' to save ROIs.\n"
+        "press 'T' to save ROIs as OCR template (auto recognize text via RapidOCR).\n"
         "press 'F' to save a full standardized screenshot.\n"
         "press 'R' to output only the ROI ranges, not save.\n"
         "press 'c' or 'C' (with connected) to output the ROI ranges and colors, not save.\n"
@@ -429,6 +502,7 @@ if __name__ == "__main__":
         cropping = False
         needSave = True
         needColorMatch = False
+        needOcr = False
         connected = False
         mains = []
         # r R
@@ -446,6 +520,17 @@ if __name__ == "__main__":
         # f F
         elif key in [ord("f"), ord("F")]:
             crop_list.append(Roimage(0, 0, 0, 0, std_roimage))
+        # t T  (OCR 模式：对选中的 ROI 运行 OCR，将识别结果写入 text)
+        elif key in [ord("t"), ord("T")]:
+            if not crop_list:
+                print("No ROI selected, skip OCR mode.")
+                continue
+            if not get_ocr_engine():
+                continue
+            needOcr = True
+        # s S enter
+        elif key not in [ord("s"), ord("S"), ord("\r"), ord("\n")]:
+            continue
         # s S enter
         elif key not in [ord("s"), ord("S"), ord("\r"), ord("\n")]:
             continue
@@ -469,6 +554,43 @@ if __name__ == "__main__":
                 print(rf"dst: {dst_file_path.absolute()}")
                 cv2.imwrite(str(dst_file_path), roi.image)
                 formatInfos.append(format_save_info(dst_filename, get_amplified_roi_rectangle(roi)))
+
+            if needOcr:
+                x1, y1, w1, h1 = roi.rectangle
+                x2, y2, w2, h2 = get_amplified_roi_rectangle(roi)
+                ocr_basename: str = (
+                    f"{file_name}_{x1}_{y1}_{w1}_{h1}__{x2}_{y2}_{w2}_{h2}"
+                )
+                # 运行 OCR 识别
+                recognized = ocr_recognize(roi.image)
+                print(f"OCR recognized: {recognized}")
+                if not recognized:
+                    # 没识别到文字时，仍按原方式保存一份空 text 的条目
+                    ocr_filename = f"{ocr_basename}.png"
+                    ocr_file_path = dst_path / ocr_filename
+                    print(rf"ocr dst: {ocr_file_path.absolute()}")
+                    cv2.imwrite(str(ocr_file_path), roi.image)
+                    formatInfos.append(
+                        format_save_info_ocr(
+                            ocr_filename,
+                            get_amplified_roi_rectangle(roi),
+                            [],
+                        )
+                    )
+                else:
+                    # 每个识别文本各生成一份图片 + JSON 条目，文件名后缀 _1/_2/_3
+                    for idx, text in enumerate(recognized, start=1):
+                        ocr_filename = f"{ocr_basename}_{idx}.png"
+                        ocr_file_path = dst_path / ocr_filename
+                        print(rf"ocr dst: {ocr_file_path.absolute()}")
+                        cv2.imwrite(str(ocr_file_path), roi.image)
+                        formatInfos.append(
+                            format_save_info_ocr(
+                                ocr_filename,
+                                get_amplified_roi_rectangle(roi),
+                                [text],
+                            )
+                        )
 
             if needColorMatch:
                 method, reverse, colors = match_color(img)
@@ -542,7 +664,7 @@ if __name__ == "__main__":
         pyperclip.copy(formatInfosStr)
 
         # 使用print()函数输出到文件
-        with open('log.txt', 'a') as f:
+        with open('log.txt', 'a', encoding='utf-8') as f:
             print(formatInfosStr, file=f)
 
     print("Exiting...")
